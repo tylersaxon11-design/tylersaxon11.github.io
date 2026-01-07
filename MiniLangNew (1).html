@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>MiniLang Studio — v7.8 Tab Name Fix</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+<style>
+/* --- THEME VARIABLES --- */
+:root {
+  --bg: #0f1112;
+  --panel: #151718;
+  --border: #2a2d2e;
+  --text: #d9e3db;
+  --text-muted: #888;
+  --accent: #0db24a;
+  --danger: #e04f4f;
+  --warn: #e0b04f;
+  
+  /* Syntax Colors */
+  --s-pink: #d487ae;
+  --s-yellow: #d1c970;
+  --s-purple: #9e7ccf;
+  --s-orange: #d69c58;
+  --s-cyan: #6cb6c4;
+  --s-green: #8fb573;
+  --s-blue: #6cb6c4;
+  --s-comment: #6a6e75;
+  --s-num: #8fb573;
+}
+
+[data-theme="light"] {
+  --bg: #f4f4f4; --panel: #ffffff; --border: #d0d0d0; --text: #222; --text-muted: #666; --accent: #009940;
+  --s-pink: #a04070; --s-yellow: #9e7c00; --s-purple: #6f42c1; --s-orange: #b05a00;
+  --s-cyan: #007a99; --s-green: #388020; --s-blue: #005cc5; --s-comment: #6a737d; --s-num: #388020;
+}
+
+*{box-sizing:border-box}
+body{ margin:0; font-family:"Fira Mono", monospace; background:var(--bg); color:var(--text); transition:0.2s; }
+
+/* Header */
+.header{ display:flex; align-items:center; gap:16px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--panel); }
+.file-btn{ position:relative; }
+.file-btn button{ background:transparent; color:var(--text); border:1px solid var(--border); padding:8px 12px; border-radius:8px; cursor:pointer; }
+.file-menu{ position:absolute; left:0; top:46px; background:var(--panel); border:1px solid var(--border); padding:8px; border-radius:8px; display:none; min-width:260px; z-index:50; box-shadow:0 4px 12px rgba(0,0,0,0.3); }
+.file-menu .menu-row button, .file-menu .menu-row label{ display:block; width:100%; background:transparent; color:var(--text); border:none; text-align:left; padding:8px; cursor:pointer; border-radius:6px; }
+.file-menu .menu-row button:hover{background:rgba(128,128,128,0.1)}
+.header select{ background:transparent; color:var(--text); border:1px solid var(--border); padding:8px; border-radius:6px; outline:none; }
+
+/* Tabs */
+.tabs{display:flex; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border)}
+.tab{ padding:10px 16px; border-radius:8px; cursor:pointer; color:var(--text-muted); transition:0.2s; }
+.tab:hover{background:rgba(128,128,128,0.1)}
+.tab.active{background:var(--panel); border:1px solid var(--border); color:var(--text); font-weight:700}
+
+/* Layout */
+.container{display:grid; grid-template-columns:1fr 360px; gap:18px; padding:16px}
+@media(max-width:980px){ .container{grid-template-columns:1fr} }
+
+.editor, .sidebar{ background:var(--panel); padding:14px; border-radius:10px; border:1px solid var(--border); }
+.editor .topbar{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px;}
+.editor .controls{display:flex; gap:12px; align-items:center}
+.status-indicator{ width:10px; height:10px; border-radius:50%; background:#777; transition:0.3s; }
+.status-indicator.running{ background:var(--accent); box-shadow:0 0 8px var(--accent); }
+
+/* Editor Layering */
+.editor-container { position: relative; width: 100%; height: 450px; background: var(--bg); border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+textarea#code, pre#highlighting { margin: 0; padding: 12px; border: 0; width: 100%; height: 100%; position: absolute; top: 0; left: 0; font-size: 15px; line-height: 1.5; font-family: "Fira Mono", monospace; overflow: auto; white-space: pre-wrap; word-wrap: break-word; }
+textarea#code { color: transparent; background: transparent; caret-color: var(--text); z-index: 1; resize: none; outline: none; }
+textarea#code::selection { background: rgba(128,128,128, 0.3); color: transparent; }
+pre#highlighting { z-index: 0; color: var(--text); pointer-events: none; }
+
+/* Syntax Colors */
+.c-pink { color: var(--s-pink); font-weight:bold; }
+.c-yellow { color: var(--s-yellow); }
+.c-purple { color: var(--s-purple); }
+.c-orange { color: var(--s-orange); }
+.c-cyan { color: var(--s-cyan); font-style: italic; }
+.c-green { color: var(--s-green); }
+.c-blue { color: var(--s-blue); }
+.c-comment { color: var(--s-comment); font-style: italic; }
+.c-num { color: var(--s-num); }
+
+/* UI Elements */
+button.insert-btn, button.action { cursor:pointer; background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:8px; font-weight:700; font-family:"Fira Mono", monospace; }
+button.insert-btn { width:100%; text-align:left; margin-bottom:8px; background:rgba(128,128,128,0.1); color:var(--text-muted); font-weight:400; transition:0.2s; border:1px solid var(--border); }
+button.insert-btn:hover { background:rgba(128,128,128,0.2); border-color:var(--text); color:var(--text); }
+button.small-ghost{ background:transparent; color:var(--text); border:1px solid var(--border); padding:8px 10px; border-radius:8px; cursor:pointer; }
+button.danger-btn{ background:transparent; color:var(--danger); border:1px solid var(--danger); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:12px; }
+button.warn-btn{ background:transparent; color:var(--warn); border:1px solid var(--warn); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:12px; }
+
+/* Output & Assets */
+#output{ margin-top:12px; background:var(--bg); min-height:250px; padding:12px; color:var(--text); border-radius:8px; font-family:"Fira Mono", monospace; white-space:pre-wrap; overflow:hidden; border:1px solid var(--border); position:relative; }
+.error-msg { color: var(--danger); font-weight:bold; border-left:3px solid var(--danger); padding-left:8px; }
+
+.asset-list{ margin-top:16px; display:flex; flex-direction:column; gap:8px; }
+.asset-item{ display:flex; justify-content:space-between; align-items:center; background:var(--bg); padding:8px 12px; border-radius:6px; border:1px solid var(--border); }
+.asset-name{ font-size:14px; color:var(--text); flex:1; margin-right:10px; word-break:break-all;}
+.upload-zone{ border:2px dashed var(--border); padding:20px; text-align:center; border-radius:8px; color:var(--text-muted); cursor:pointer; transition:0.2s; margin-bottom:12px; }
+.upload-zone:hover{ border-color:var(--accent); color:var(--accent); }
+
+/* Documentation */
+.doc-table { width:100%; border-collapse:collapse; font-size:13px; }
+.doc-table td { padding:8px; border-bottom:1px solid var(--border); vertical-align:top; }
+.doc-table td:first-child { color: var(--accent); font-weight:bold; width:160px; font-family: "Fira Mono", monospace; }
+.doc-table td:last-child { color: var(--text-muted); }
+.sep { margin: 20px 0; border-bottom: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="file-btn">
+    <button id="fileToggle">File ▾</button>
+    <div class="file-menu" id="fileMenu">
+      <div class="menu-row"><button onclick="saveProject()">Save Project (.mini)</button></div>
+      <div class="menu-row"><label for="fileInput" style="cursor:pointer">Open Project (.mini)</label></div>
+      <div style="height:1px;background:var(--border);margin:6px 0"></div>
+      <!-- Export / Play Game -->
+      <div class="menu-row"><button onclick="saveGame()">Export Game (.minigame)</button></div>
+      <div class="menu-row"><label for="gameInput" style="cursor:pointer; color:var(--accent)">▶ Play Game (.minigame)</label></div>
+      <div style="height:1px;background:var(--border);margin:6px 0"></div>
+      <div class="menu-row"><label><input type="checkbox" id="runNewTabToggle"/> Run In New Tab</label></div>
+    </div>
+  </div>
+  <div style="font-weight:700; color:var(--accent)">MiniLang Studio v7.8</div>
+  <div style="flex:1"></div>
+  <select id="themeSelect" onchange="changeTheme(this.value)">
+    <option value="system">System</option><option value="dark">Dark</option><option value="light">Light</option>
+  </select>
+  <select id="version-select">
+    <option value="v4">MiniLang v4</option>
+    <option value="simple">MiniLang Simple</option>
+  </select>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="editor" onclick="openTab('editor')">Editor</div>
+  <div class="tab" data-tab="sounds" onclick="openTab('sounds')">Sounds</div>
+  <div class="tab" data-tab="images" onclick="openTab('images')">Images</div>
+  <div class="tab" data-tab="docs" onclick="openTab('docs')">Docs</div>
+</div>
+
+<div class="container">
+  <section class="editor" id="editorSection">
+    <div class="topbar">
+      <div><strong>Code</strong></div>
+      <div class="controls">
+        <div id="statusIndicator" class="status-indicator"></div>
+        <button class="action" id="runBtn" onclick="onRunClicked()">Run</button>
+        <button class="small-ghost" onclick="stopExecution()">Stop</button>
+        <button class="small-ghost" onclick="clearOutput()">Clear</button>
+      </div>
+    </div>
+    <div class="editor-container">
+        <pre id="highlighting" aria-hidden="true"></pre>
+        <textarea id="code" spellcheck="false" oninput="updateHighlighting()" onscroll="syncScroll()">
+Title("My Awesome Game")
+print("Loading...")
+wait(1)
+Title("Score: 0")
+</textarea>
+    </div>
+    <div id="output"></div>
+  </section>
+
+  <section class="editor" id="soundsSection" style="display:none">
+    <div class="topbar"><strong>Sounds</strong></div>
+    <div style="margin-top:16px;">
+      <div class="upload-zone" onclick="document.getElementById('soundInput').click()">
+        Click to Upload (.mp3, .wav)
+        <input type="file" id="soundInput" accept=".mp3,.wav,.m4a" multiple style="display:none" onchange="handleAssetUpload(this, 'sound')"/>
+      </div>
+      <div class="asset-list" id="soundList"></div>
+    </div>
+  </section>
+
+  <section class="editor" id="imagesSection" style="display:none">
+    <div class="topbar"><strong>Images</strong></div>
+    <div style="margin-top:16px;">
+      <div class="upload-zone" onclick="document.getElementById('imageInput').click()">
+        Click to Upload (.png, .jpg, .gif)
+        <input type="file" id="imageInput" accept=".png,.jpg,.jpeg,.gif" multiple style="display:none" onchange="handleAssetUpload(this, 'image')"/>
+      </div>
+      <div class="asset-list" id="imageList"></div>
+    </div>
+  </section>
+
+  <section class="editor" id="docsSection" style="display:none; overflow-y:auto; max-height:600px">
+    <div class="topbar"><strong>Full Documentation</strong></div>
+    <div style="margin-top:16px;">
+      
+      <h3>Text & Display</h3>
+      <table class="doc-table">
+        <tr><td>Title("Text")</td><td>Sets the Browser Tab Name (Doesn't print to screen).</td></tr>
+        <tr><td>print("Text")</td><td>Prints normal text to the screen.</td></tr>
+        <tr><td>ClearOutput</td><td>Removes all text (keeps images).</td></tr>
+      </table>
+      
+      <div class="sep"></div>
+      
+      <h3>Variables & Math</h3>
+      <table class="doc-table">
+        <tr><td>Name = 10</td><td>Sets variable 'Name' to 10.</td></tr>
+        <tr><td>Name = input</td><td>Asks the player to type something.</td></tr>
+        <tr><td>Change Name By 1</td><td>Adds 1 to 'Name'. Use negative to subtract.</td></tr>
+      </table>
+
+      <div class="sep"></div>
+
+      <h3>Logic & Control</h3>
+      <table class="doc-table">
+        <tr><td>Forever ... end</td><td>Loops the code inside forever.</td></tr>
+        <tr><td>if Condition then</td><td>Runs code if condition is true.</td></tr>
+        <tr><td>elseif / else</td><td>Alternative branches.</td></tr>
+        <tr><td>wait(Seconds)</td><td>Pauses code execution.</td></tr>
+        <tr><td>if Key Pressed then</td><td>Checks if key (Space, K) is held.</td></tr>
+      </table>
+
+      <div class="sep"></div>
+
+      <h3>Images (Visuals)</h3>
+      <table class="doc-table">
+        <tr><td>Name:Draw(x, y)</td><td>Draws image.</td></tr>
+        <tr><td>Name:Move(x, y)</td><td>Moves image.</td></tr>
+        <tr><td>Name:FullScreen</td><td>Stretches to cover screen.</td></tr>
+        <tr><td>Name:Hide / :Show</td><td>Toggle visibility.</td></tr>
+        <tr><td>ClearImages</td><td>Removes all images.</td></tr>
+      </table>
+
+      <div class="sep"></div>
+
+      <h3>Audio</h3>
+      <table class="doc-table">
+        <tr><td>Name:Play</td><td>Plays sound.</td></tr>
+        <tr><td>Name:StopPlay</td><td>Stops sound.</td></tr>
+      </table>
+
+    </div>
+  </section>
+
+  <aside class="sidebar">
+    <div class="doc-section">
+      <h3>Quick Inserts</h3>
+      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode('Title(\"Header\")')">Title</button>
+      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode('print(\"Hello\")')">Print</button>
+      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode('wait(1)')">Wait</button>
+      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode('ClearOutput')">ClearOutput</button>
+      
+      <div style="height:8px"></div>
+      
+      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertAssetCommand('sound')">Play Sound</button>
+      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertAssetCommand('image')">Draw Image</button>
+      
+      <div style="height:8px"></div>
+
+      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode('Forever\n    \nend')">Forever Loop</button>
+      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode('if 1=1 then\n    \nelse\n    \nend')">If / Else</button>
+    </div>
+    <div class="doc-section"><h3>Snippets</h3><div id="extra-inserts"></div></div>
+  </aside>
+</div>
+
+<!-- Inputs -->
+<input type="file" id="fileInput" accept=".mini" style="display:none" onchange="loadProject(this)"/>
+<input type="file" id="gameInput" accept=".minigame" style="display:none" onchange="runGameFile(this)"/>
+
+<script>
+/* --- 1. Global State & Assets --- */
+const assets = { sounds: {}, images: {} }; 
+const soundObjects = {}; 
+let stopFlag = false;
+
+/* --- 2. Theme & UI --- */
+function changeTheme(val) {
+  if(val==='system'){
+    document.documentElement.removeAttribute('data-theme');
+    if (window.matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.setAttribute('data-theme', 'light');
+  } else { document.documentElement.setAttribute('data-theme', val); }
+}
+changeTheme('system');
+
+const fileMenu = document.getElementById('fileMenu');
+document.getElementById('fileToggle').onclick=(e)=>{e.stopPropagation(); fileMenu.style.display=fileMenu.style.display==='block'?'none':'block';};
+document.onclick=()=>fileMenu.style.display='none';
+
+function openTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.tab[data-tab="${name}"]`).classList.add('active');
+  ['editor','sounds','images','docs'].forEach(n=>document.getElementById(n+'Section').style.display='none');
+  document.getElementById(`${name}Section`).style.display='block';
+}
+
+/* --- 3. Asset Management --- */
+function handleAssetUpload(input, type){
+  if(!input.files.length) return;
+  for(let f of input.files){
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const dataUrl = e.target.result;
+      if(type==='sound'){
+        assets.sounds[f.name] = dataUrl;
+        soundObjects[f.name] = new Audio(dataUrl);
+        renderAssetList('sound');
+      } else {
+        assets.images[f.name] = dataUrl;
+        renderAssetList('image');
+      }
+    };
+    reader.readAsDataURL(f);
+  }
+  input.value='';
+}
+
+function renderAssetList(type){
+  const list = document.getElementById(type+'List');
+  const store = type==='sound' ? assets.sounds : assets.images;
+  list.innerHTML = '';
+  if(Object.keys(store).length === 0) { list.innerHTML = `<div style="padding:10px;color:var(--text-muted)">No ${type}s.</div>`; return; }
+
+  Object.keys(store).forEach(name => {
+    const item = document.createElement('div');
+    item.className = 'asset-item';
+    const span = document.createElement('span'); span.className='asset-name'; span.innerText=name;
+    const delBtn = document.createElement('button'); delBtn.className='danger-btn'; delBtn.innerText='✕';
+    delBtn.onclick = () => { 
+      delete store[name]; 
+      if(type==='sound') delete soundObjects[name];
+      renderAssetList(type); 
+    };
+    if(type==='sound'){
+      const playBtn = document.createElement('button'); playBtn.className='small-ghost'; playBtn.innerText='▶';
+      playBtn.style.marginRight='6px';
+      playBtn.onclick=()=>{ soundObjects[name].currentTime=0; soundObjects[name].play(); };
+      item.append(span, playBtn, delBtn);
+    } else {
+      const imgPreview = document.createElement('img');
+      imgPreview.src = store[name];
+      imgPreview.style.height = '30px'; imgPreview.style.marginRight='10px';
+      item.append(imgPreview, span, delBtn);
+    }
+    list.append(item);
+  });
+}
+
+function insertAssetCommand(type){
+  const store = type==='sound' ? assets.sounds : assets.images;
+  const keys = Object.keys(store);
+  const name = keys.length ? keys[0] : (type==='sound'?"sound.mp3":"image.png");
+  if(type==='sound') insertCode(`${name}:Play`);
+  else insertCode(`${name}:Draw(10, 10)`);
+}
+
+/* --- 4. Editor Logic --- */
+const textarea = document.getElementById('code');
+const pre = document.getElementById('highlighting');
+let savedSel = {s:0,e:0};
+function saveSel(){ savedSel={s:textarea.selectionStart,e:textarea.selectionEnd}; }
+['keyup','mouseup','input','blur'].forEach(ev=>textarea.addEventListener(ev,saveSel));
+
+function insertCode(str){
+  let s=savedSel.s, e=savedSel.e;
+  if(document.activeElement===textarea){ s=textarea.selectionStart; e=textarea.selectionEnd; }
+  textarea.value = textarea.value.substring(0,s)+str+textarea.value.substring(e);
+  textarea.selectionStart=textarea.selectionEnd=s+str.length;
+  savedSel={s:s+str.length,e:s+str.length};
+  textarea.focus(); updateHighlighting();
+}
+
+function updateHighlighting() {
+  let t = textarea.value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  t = t.replace(/\(([^)\n]*)\)/g, '(<span class="c-purple">$1</span>)');
+  t = t.replace(/(:Play|:StopPlay|:Draw|:Move|:FullScreen|:Hide|:Show)\b/g, '<span class="c-pink">$1</span>');
+  t = t.replace(/\b(print|Title)\b/g, '<span class="c-yellow">$1</span>');
+  t = t.replace(/\b(input)\b/g, '<span class="c-cyan">$1</span>');
+  t = t.replace(/\b(ClearOutput|ClearImages)\b/g, '<span class="c-green">$1</span>');
+  t = t.replace(/\b(Forever|if|then|end|Change|By|wait|Pressed|elseif|else)\b/g, '<span class="c-blue">$1</span>');
+  t = t.replace(/\b([A-Z]\w*)\b/g, m => ["Forever","Change","By","ClearOutput","ClearImages","Pressed"].includes(m) ? m : '<span class="c-orange">'+m+'</span>');
+  t = t.replace(/\b(\d+)\b/g, '<span class="c-num">$1</span>');
+  t = t.replace(/(#|--)(.*?)(\n|$)/g, '<span class="c-comment">$1$2</span>$3');
+  pre.innerHTML = t + '<br>';
+}
+function syncScroll() { pre.scrollTop=textarea.scrollTop; pre.scrollLeft=textarea.scrollLeft; }
+
+textarea.addEventListener('keydown', function(e){
+  if(e.key==='Tab'){ e.preventDefault(); document.execCommand('insertText', false, "    "); }
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    const pos = textarea.selectionStart;
+    const val = textarea.value;
+    const lastN = val.lastIndexOf('\n', pos - 1);
+    const line = val.substring(lastN + 1, pos);
+    let indent = (line.match(/^\s*/) || [""])[0];
+    if(line.trim().endsWith('then') || line.trim().startsWith('Forever') || line.trim().startsWith('else')) indent += "    ";
+    document.execCommand('insertText', false, "\n" + indent);
+  }
+});
+updateHighlighting();
+
+/* --- 5. Project I/O --- */
+function saveProject(){
+  const project = { version: 7.8, code: textarea.value, assets: assets };
+  const blob = new Blob([JSON.stringify(project)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'project.mini'; a.click();
+}
+function saveGame(){
+  const project = { version: 7.8, code: textarea.value, assets: assets };
+  const blob = new Blob([JSON.stringify(project)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'game.minigame'; a.click();
+}
+function loadProject(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { 
+    try {
+      const proj = JSON.parse(e.target.result);
+      if(proj.code) textarea.value = proj.code;
+      if(proj.assets) {
+        assets.sounds = proj.assets.sounds || {};
+        assets.images = proj.assets.images || {};
+        for(let k in assets.sounds) soundObjects[k] = new Audio(assets.sounds[k]);
+        renderAssetList('sound'); renderAssetList('image');
+      }
+      updateHighlighting();
+    } catch(err) { alert("Invalid Project"); }
+  };
+  reader.readAsText(file);
+}
+function runGameFile(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const proj = JSON.parse(e.target.result);
+      openRunner(proj.code, proj.assets);
+    } catch(err) { alert("Invalid Game File"); }
+  };
+  reader.readAsText(file);
+}
+
+/* --- 6. Snippets --- */
+const snippets = [
+  {l:"Variable", c:"Money = 0"}, {l:"Input", c:'Name = input("Enter Name: ")'},
+  {l:"Change Var", c:"Change Money By 1"}, {l:"Key Wait", c:"if K Pressed then\n    \nend"} 
+];
+const extraDiv = document.getElementById('extra-inserts');
+snippets.forEach(i=>{
+    const b=document.createElement('button'); b.className='insert-btn'; b.innerText=i.l;
+    b.onmousedown = (e)=>e.preventDefault(); b.onclick=()=>insertCode(i.c); extraDiv.appendChild(b);
+});
+
+/* --- 7. Interpreter --- */
+const keysDown = {};
+document.addEventListener('keydown', e=> keysDown[e.key.toUpperCase()] = true);
+document.addEventListener('keyup', e=> keysDown[e.key.toUpperCase()] = false);
+
+function normalizeKey(k){
+  k = k.toUpperCase().trim();
+  if(k==="SPACE") return " ";
+  if(k==="ENTER") return "ENTER";
+  return k; 
+}
+
+function clearOutput(){ document.getElementById('output').innerHTML = ''; }
+function stopExecution(){ 
+  stopFlag = true;
+  document.getElementById('statusIndicator').classList.remove('running');
+  Object.values(soundObjects).forEach(s => { s.pause(); s.currentTime=0; });
+}
+function printError(msg){
+  const div = document.createElement('div'); div.className = 'error-msg'; div.innerText = "Error: " + msg;
+  document.getElementById('output').appendChild(div); stopExecution();
+}
+function safeEval(expr){ try{ return Function('"use strict";return ('+expr+')')(); } catch(e){ return null; } }
+
+function evalExpr(expr, vars){
+  const tokens = expr.split(/(".*?"|'.*?')/g);
+  for(let i=0; i<tokens.length; i++){
+    if(tokens[i].startsWith('"') || tokens[i].startsWith("'")) continue;
+    tokens[i] = tokens[i].replace(/\b[a-zA-Z_]\w*\b/g, m => {
+      if(vars.hasOwnProperty(m)) {
+         let val = vars[m];
+         return typeof val === 'number' ? val : JSON.stringify(val);
+      }
+      return (m==='input'?'input':'0');
+    });
+  }
+  const res = safeEval(tokens.join(''));
+  if(res === null) throw new Error("Invalid: " + expr);
+  return res;
+}
+
+function getImgId(name) { return 'img-' + name.replace(/[^a-zA-Z0-9]/g, ''); }
+function manageImage(action, name, x, y){
+    const id = getImgId(name);
+    let img = document.getElementById(id);
+    if(action === 'Draw'){
+        if(!assets.images[name]) return;
+        if(!img){
+            img = document.createElement('img'); img.id = id;
+            img.src = assets.images[name]; img.style.position = 'absolute';
+            img.className = 'runtime-image';
+            document.getElementById('output').appendChild(img);
+        }
+        img.style.left = x + 'px'; img.style.top = y + 'px';
+        img.style.width = 'auto'; img.style.height = 'auto'; img.style.display = 'block';
+    }
+    else if(action === 'Move'){ if(img){ img.style.left = x + 'px'; img.style.top = y + 'px'; } }
+    else if(action === 'FullScreen'){ if(img){ img.style.left='0'; img.style.top='0'; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; } }
+    else if(action === 'Hide'){ if(img) img.style.display = 'none'; }
+    else if(action === 'Show'){ if(img) img.style.display = 'block'; }
+}
+
+async function run(){
+  stopFlag = false;
+  clearOutput();
+  document.getElementById('statusIndicator').classList.add('running');
+  const code = textarea.value;
+  const lines = code.split('\n');
+  const vars = {};
+  const outputEl = document.getElementById('output');
+
+  function doPrint(line){
+    const m = line.match(/\((.*)\)/); if(!m) return;
+    let finalStr = "";
+    m[1].split(',').forEach(p=>{
+      p=p.trim();
+      if(p.startsWith('"')||p.startsWith("'")) finalStr += p.slice(1,-1) + " ";
+      else if(vars.hasOwnProperty(p)) finalStr += vars[p] + " "; else finalStr += p + " ";
+    });
+    const el = document.createElement('div'); 
+    el.innerText = finalStr.trim(); outputEl.appendChild(el);
+  }
+
+  // Handle Title separately - in Editor it just updates document.title potentially, but usually we ignore it to avoid confusion or just set it
+  function handleTitle(line){
+    const m = line.match(/\((.*)\)/); if(!m) return;
+    let finalStr = "";
+    m[1].split(',').forEach(p=>{
+        p=p.trim();
+        if(p.startsWith('"')||p.startsWith("'")) finalStr += p.slice(1,-1) + " ";
+        else if(vars.hasOwnProperty(p)) finalStr += vars[p] + " "; else finalStr += p + " ";
+    });
+    document.title = finalStr.trim();
+  }
+
+  async function runBlock(blockLines){
+    for(let i=0; i<blockLines.length && !stopFlag; i++){
+      let line = blockLines[i].trim();
+      if(!line || line.startsWith('--') || line.startsWith('#')) continue;
+
+      try {
+        if(/:Draw\(/.test(line)){
+            const name = line.split(':Draw')[0].trim(); const args = line.match(/:Draw\((.*)\)/)[1];
+            const [x,y] = args.split(',').map(n => parseFloat(n));
+            manageImage('Draw', name, x, y); continue;
+        }
+        if(/:Move\(/.test(line)){
+            const name = line.split(':Move')[0].trim(); const args = line.match(/:Move\((.*)\)/)[1];
+            const [x,y] = args.split(',').map(n => parseFloat(n));
+            manageImage('Move', name, x, y); continue;
+        }
+        if(/:FullScreen$/.test(line)){ manageImage('FullScreen', line.replace(/:FullScreen$/,'').trim()); continue; }
+        if(/:Hide$/.test(line)){ manageImage('Hide', line.replace(/:Hide$/,'').trim()); continue; }
+        if(/:Show$/.test(line)){ manageImage('Show', line.replace(/:Show$/,'').trim()); continue; }
+        if(line === 'ClearImages'){ document.querySelectorAll('.runtime-image').forEach(e=>e.remove()); continue; }
+        
+        if(/:Play$/.test(line)){
+          const fname = line.replace(/:Play$/,'');
+          if(soundObjects[fname]){ soundObjects[fname].currentTime=0; soundObjects[fname].play(); } continue;
+        }
+        if(/:StopPlay$/.test(line)){
+          const fname = line.replace(/:StopPlay$/,'');
+          if(soundObjects[fname]) soundObjects[fname].pause(); continue;
+        }
+
+        if(line.startsWith('wait(')){
+          const sec = parseFloat(line.match(/\((.*)\)/)[1]) || 0;
+          await new Promise(r=>setTimeout(r, sec*1000)); continue;
+        }
+        if(line.startsWith('Title')) { handleTitle(line); continue; }
+        if(line.startsWith('print')) { doPrint(line); continue; }
+        if(line === 'ClearOutput') { Array.from(outputEl.children).forEach(c => { if(!c.classList.contains('runtime-image')) c.remove(); }); continue; }
+        
+        if(line.startsWith("Change ")){
+          const parts = line.substring(7).split(" By ");
+          if(parts.length < 2) throw new Error("Invalid Change");
+          const v = parts[0].trim(); let amount = parseFloat(parts[1].trim());
+          if(isNaN(amount)){
+              if(vars[parts[1].trim()] !== undefined) amount = Number(vars[parts[1].trim()]);
+              else throw new Error("Missing var: " + parts[1]);
+          }
+          vars[v] = (vars[v]||0) + amount; continue;
+        }
+
+        if(line.startsWith('Forever')){
+          const sub = []; i++; let d = 1;
+          while(i < blockLines.length){
+            const l = blockLines[i];
+            if(l.trim().startsWith('Forever') || l.trim().startsWith('if')) d++;
+            if(l.trim() === 'end') d--;
+            if(d === 0) break;
+            sub.push(l); i++;
+          }
+          while(!stopFlag){ await runBlock(sub); await new Promise(r=>setTimeout(r, 10)); }
+          continue;
+        }
+
+        if(line.startsWith('if ')){
+          const branches = [];
+          let currentCond = line.substring(3, line.lastIndexOf('then')).trim();
+          let currentBlock = [];
+          i++; let d = 1;
+          while(i < blockLines.length){
+            const l = blockLines[i]; const trim = l.trim();
+            if(trim.startsWith('if ') || trim.startsWith('Forever')) d++;
+            if(trim === 'end') d--;
+            if(d === 1 && trim.startsWith('elseif ')){ branches.push({cond: currentCond, block: currentBlock}); currentCond = trim.substring(7, trim.lastIndexOf('then')).trim(); currentBlock = []; i++; continue; }
+            if(d === 1 && trim === 'else'){ branches.push({cond: currentCond, block: currentBlock}); currentCond = "true"; currentBlock = []; i++; continue; }
+            if(d === 0){ branches.push({cond: currentCond, block: currentBlock}); break; }
+            currentBlock.push(l); i++;
+          }
+          for(const br of branches){
+             let met = false;
+             if(br.cond === 'true') met = true;
+             else if(br.cond.includes('Pressed')){
+                 const k = normalizeKey(br.cond.replace('Pressed',''));
+                 if(keysDown[k]) met = true;
+             } else { met = evalExpr(br.cond, vars); }
+             if(met){
+                 await runBlock(br.block);
+                 if(br.cond.includes('Pressed')){ const k = normalizeKey(br.cond.replace('Pressed','')); while(keysDown[k] && !stopFlag) await new Promise(r=>setTimeout(r,20)); }
+                 break; 
+             }
+          }
+          continue;
+        }
+
+        if(line.includes('=') && !line.startsWith('if')){
+          const [lhs, rhs] = line.split('=').map(s=>s.trim());
+          if(rhs.toLowerCase().startsWith('input')) vars[lhs] = prompt("Val?");
+          else vars[lhs] = evalExpr(rhs, vars);
+        }
+      } catch(err) { printError(err.message); return; }
+    }
+  }
+  try { await runBlock(lines); while(!stopFlag){ await new Promise(r=>setTimeout(r, 100)); } } 
+  catch(e) { printError("Runtime: " + e.message); }
+}
+
+/* --- 8. NEW TAB RUNNER --- */
+const runNewTabToggle = document.getElementById('runNewTabToggle');
+async function onRunClicked(){
+  if(runNewTabToggle.checked){ openRunner(textarea.value, assets); } else { run(); }
+}
+
+function openRunner(code, assetsObj){
+  const win = window.open();
+  const script = `
+    const code = ${JSON.stringify(code)}; const assets = ${JSON.stringify(assetsObj)};
+    const vars = {}; const keysDown = {}; let stopFlag = false; const log = document.getElementById('log');
+    const sounds = {}; for(let k in assets.sounds) sounds[k] = new Audio(assets.sounds[k]);
+    document.addEventListener('keydown', e=>keysDown[e.key.toUpperCase()]=true);
+    document.addEventListener('keyup', e=>keysDown[e.key.toUpperCase()]=false);
+    function normalizeKey(k){ k=k.toUpperCase().trim(); if(k==="SPACE")return " "; return k; }
+    function evalExpr(expr, v){
+       let tokens = expr.split(/(".*?"|'.*?')/g);
+       for(let i=0; i<tokens.length; i++){
+         if(tokens[i].startsWith('"')) continue;
+         tokens[i] = tokens[i].replace(/[a-zA-Z_]\\w*/g, m => {
+           if(v[m] !== undefined) return typeof v[m] === 'number' ? v[m] : JSON.stringify(v[m]);
+           return (m==='input'?'input':'0');
+         });
+       }
+       try{ return Function('"use strict";return ('+tokens.join('')+')')(); } catch{return 0}
+    }
+    function getImgId(n){ return 'rt-'+n.replace(/[^a-zA-Z0-9]/g, ''); }
+    function manageImage(act, name, x, y){
+        const id = getImgId(name); let img = document.getElementById(id);
+        if(act === 'Draw'){
+            if(!assets.images[name]) return;
+            if(!img){ img=document.createElement('img'); img.id=id; img.src=assets.images[name]; img.style.position='absolute'; document.body.appendChild(img); }
+            img.style.left=x+'px'; img.style.top=y+'px'; img.style.width='auto'; img.style.height='auto'; img.style.display='block';
+        }
+        else if(act === 'Move'){ if(img){ img.style.left=x+'px'; img.style.top=y+'px'; } }
+        else if(act === 'FullScreen'){ if(img){ img.style.left='0'; img.style.top='0'; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; } }
+        else if(act === 'Hide'){ if(img) img.style.display='none'; }
+        else if(act === 'Show'){ if(img) img.style.display='block'; }
+    }
+    async function runBlock(lines){
+      for(let i=0; i<lines.length; i++){
+        let line = lines[i].trim();
+        if(!line || line.startsWith('--') || line.startsWith('#')) continue;
+        if(/:Draw\\(/.test(line)){
+            let n = line.split(':Draw')[0].trim(); let a = line.match(/:Draw\\((.*)\\)/)[1];
+            let [x,y] = a.split(',').map(n=>parseFloat(n)); manageImage('Draw', n, x, y); continue;
+        }
+        if(/:Move\\(/.test(line)){
+            let n = line.split(':Move')[0].trim(); let a = line.match(/:Move\\((.*)\\)/)[1];
+            let [x,y] = a.split(',').map(n=>parseFloat(n)); manageImage('Move', n, x, y); continue;
+        }
+        if(/:FullScreen$/.test(line)){ manageImage('FullScreen', line.replace(/:FullScreen$/,'').trim()); continue; }
+        if(/:Hide$/.test(line)){ manageImage('Hide', line.replace(/:Hide$/,'').trim()); continue; }
+        if(/:Show$/.test(line)){ manageImage('Show', line.replace(/:Show$/,'').trim()); continue; }
+        if(line === 'ClearImages'){ document.querySelectorAll('img').forEach(e=>e.remove()); continue; }
+        if(/:Play$/.test(line)){ let f = line.replace(/:Play$/,''); if(sounds[f]){ sounds[f].currentTime=0; sounds[f].play(); } continue; }
+        if(/:StopPlay$/.test(line)){ let f = line.replace(/:StopPlay$/,''); if(sounds[f]) sounds[f].pause(); continue; }
+        
+        if(line === 'ClearOutput'){ log.innerText = ''; continue; }
+        if(line.startsWith('Change ')){
+             let parts = line.substring(7).split(" By "); let v = parts[0].trim(); let am = parseFloat(parts[1]);
+             if(isNaN(am)){ if(vars[parts[1].trim()]!==undefined) am = Number(vars[parts[1].trim()]); else am = 0; }
+             vars[v] = (vars[v]||0)+am; continue;
+        }
+        if(line.startsWith('wait(')){ let t = parseFloat(line.match(/\\((.*)\\)/)[1]); await new Promise(r=>setTimeout(r, t*1000)); continue; }
+        
+        if(line.startsWith('Title')){
+           let m = line.match(/\\((.*)\\)/);
+           if(m){
+             let parts = m[1].split(','); let str = "";
+             parts.forEach(p=>{
+                p=p.trim();
+                if(p.startsWith('"')) str+=p.slice(1,-1)+" "; else if(vars[p]!==undefined) str+=vars[p]+" "; else str+=p+" ";
+             });
+             document.title = str.trim();
+           } continue;
+        }
+
+        if(line.startsWith('print')){
+           let m = line.match(/\\((.*)\\)/);
+           if(m){
+             let parts = m[1].split(','); let str = "";
+             parts.forEach(p=>{
+                p=p.trim();
+                if(p.startsWith('"')) str+=p.slice(1,-1)+" "; else if(vars[p]!==undefined) str+=vars[p]+" "; else str+=p+" ";
+             });
+             log.innerText += str.trim() + "\\n";
+           } continue;
+        }
+        if(line.startsWith('Forever')){
+          let sub = []; i++; let d=1;
+          while(i<lines.length){
+            let l=lines[i];
+            if(l.trim().startsWith('Forever')||l.trim().startsWith('if')) d++;
+            if(l.trim()==='end') d--; if(d===0) break; sub.push(l); i++;
+          }
+          while(!stopFlag){ await runBlock(sub); await new Promise(r=>setTimeout(r,10)); } continue;
+        }
+        if(line.startsWith('if ')){
+          let branches = []; let curCond = line.slice(3, line.lastIndexOf('then')).trim(); let curBlk = [];
+          i++; let d=1;
+          while(i<lines.length){
+            let l=lines[i]; let tr=l.trim();
+            if(tr.startsWith('if')||tr.startsWith('Forever')) d++; if(tr==='end') d--;
+            if(d===1 && tr.startsWith('elseif ')){ branches.push({c:curCond,b:curBlk}); curCond=tr.slice(7,tr.lastIndexOf('then')).trim(); curBlk=[]; i++; continue; }
+            if(d===1 && tr==='else'){ branches.push({c:curCond,b:curBlk}); curCond="true"; curBlk=[]; i++; continue; }
+            if(d===0){ branches.push({c:curCond,b:curBlk}); break; }
+            curBlk.push(l); i++;
+          }
+          for(let br of branches){
+             let met = false;
+             if(br.c === 'true') met = true;
+             else if(br.c.includes('Pressed')){ let k = normalizeKey(br.c.replace('Pressed','')); if(keysDown[k]) met=true; }
+             else { met = evalExpr(br.c, vars); }
+             if(met){
+                 await runBlock(br.b);
+                 if(br.c.includes('Pressed')){ let k=normalizeKey(br.c.replace('Pressed','')); while(keysDown[k]) await new Promise(r=>setTimeout(r,20)); }
+                 break;
+             }
+          }
+          continue;
+        }
+        if(line.includes('=') && !line.startsWith('if')){
+           let [L, R] = line.split('=').map(s=>s.trim());
+           if(R.toLowerCase()==='input') vars[L]=prompt("?"); else vars[L] = evalExpr(R, vars);
+        }
+      }
+    }
+    runBlock(code.split('\\n'));
+  `;
+  win.document.write(`<html><head><title>MiniGame</title><style>body{background:#111;color:#eee;font-family:monospace;padding:20px;overflow:hidden;}#log{position:relative;z-index:10;pointer-events:none;}</style></head><body><div id="log"></div><script>${script}<\/script></body></html>`);
+}
+</script>
+</body>
+</html>
