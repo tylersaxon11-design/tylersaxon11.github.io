@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>MiniLang Studio — v10.2 HTML Export</title>
+<title>MiniLang Studio — v12.2</title>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
 <style>
 /* --- THEME VARIABLES --- */
@@ -16,16 +16,9 @@
   --danger: #e04f4f;
   --warn: #e0b04f;
   
-  /* Syntax Colors */
-  --s-pink: #d487ae;
-  --s-yellow: #d1c970;
-  --s-purple: #9e7ccf;
-  --s-orange: #d69c58;
-  --s-cyan: #6cb6c4;
-  --s-green: #8fb573;
-  --s-blue: #6cb6c4;
-  --s-comment: #6a6e75;
-  --s-num: #8fb573;
+  --s-pink: #d487ae; --s-yellow: #d1c970; --s-purple: #9e7ccf;
+  --s-orange: #d69c58; --s-cyan: #6cb6c4; --s-green: #8fb573;
+  --s-blue: #6cb6c4; --s-comment: #6a6e75; --s-num: #8fb573;
 }
 
 [data-theme="light"] {
@@ -45,6 +38,10 @@ body{ margin:0; font-family:"Fira Mono", monospace; background:var(--bg); color:
 .file-menu .menu-row button, .file-menu .menu-row label{ display:block; width:100%; background:transparent; color:var(--text); border:none; text-align:left; padding:8px; cursor:pointer; border-radius:6px; }
 .file-menu .menu-row button:hover{background:rgba(128,128,128,0.1)}
 .header select{ background:transparent; color:var(--text); border:1px solid var(--border); padding:8px; border-radius:6px; outline:none; }
+
+/* Resolution Inputs */
+.res-inputs { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--text-muted); }
+.res-inputs input { width:60px; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:4px; border-radius:4px; text-align:center; }
 
 /* Tabs */
 .tabs{display:flex; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border)}
@@ -69,7 +66,47 @@ textarea#code { color: transparent; background: transparent; caret-color: var(--
 textarea#code::selection { background: rgba(128,128,128, 0.3); color: transparent; }
 pre#highlighting { z-index: 0; color: var(--text); pointer-events: none; }
 
-/* Color Picker UI - Expanded */
+/* --- GAME STAGE (FIXED RESOLUTION) --- */
+.game-stage-wrapper {
+  background: #000;
+  border-radius: 6px;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  border: 1px solid var(--border);
+}
+
+.game-stage {
+  width: 640px; /* Default */
+  height: 360px; /* Default */
+  background: #111;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  border: 1px solid #333;
+  flex-shrink: 0;
+  font-family: "Fira Mono", monospace;
+  transition: width 0.3s, height 0.3s;
+}
+
+/* UI Builder Layout */
+.ui-builder-layout { display:flex; gap:12px; height:450px; }
+.ui-canvas-container { flex:1; background:var(--bg); border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); overflow:auto; padding:20px;}
+.ui-toolbar { width:200px; display:flex; flex-direction:column; gap:10px; border-left:1px solid var(--border); padding-left:12px; }
+
+/* Draggable Elements */
+.ui-element { position:absolute; cursor:grab; user-select:none; padding:2px 4px; border:1px dashed transparent; white-space:nowrap; z-index:100; }
+.ui-element:hover { border-color:var(--text-muted); }
+.ui-element.selected { border-color:var(--accent); cursor:grabbing; }
+
+/* Prop Panel */
+.prop-group { margin-bottom:8px; }
+.prop-group label { display:block; font-size:11px; color:var(--text-muted); margin-bottom:4px; }
+.prop-group input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:4px; font-family:"Fira Mono"; font-size:12px; }
+
+/* Color Picker UI */
 #colorPicker {
   position: fixed; display: none; background: var(--panel); border: 1px solid var(--border);
   padding: 10px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 100;
@@ -89,19 +126,15 @@ pre#highlighting { z-index: 0; color: var(--text); pointer-events: none; }
 .c-comment { color: var(--s-comment); font-style: italic; }
 .c-num { color: var(--s-num); }
 
-/* UI Elements */
+/* Buttons */
 button.insert-btn, button.action { cursor:pointer; background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:8px; font-weight:700; font-family:"Fira Mono", monospace; }
 button.insert-btn { width:100%; text-align:left; margin-bottom:8px; background:rgba(128,128,128,0.1); color:var(--text-muted); font-weight:400; transition:0.2s; border:1px solid var(--border); }
 button.insert-btn:hover { background:rgba(128,128,128,0.2); border-color:var(--text); color:var(--text); }
 button.small-ghost{ background:transparent; color:var(--text); border:1px solid var(--border); padding:8px 10px; border-radius:8px; cursor:pointer; }
 button.danger-btn{ background:transparent; color:var(--danger); border:1px solid var(--danger); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:12px; }
-button.warn-btn{ background:transparent; color:var(--warn); border:1px solid var(--warn); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:12px; }
 
 /* Output & Assets */
-#output{ margin-top:12px; background:var(--bg); min-height:250px; padding:12px; color:var(--text); border-radius:8px; font-family:"Fira Mono", monospace; white-space:pre-wrap; overflow:hidden; border:1px solid var(--border); position:relative; transition: background 0.3s; }
 .error-msg { color: var(--danger); font-weight:bold; border-left:3px solid var(--danger); padding-left:8px; }
-.runtime-title { font-size: 24px; font-weight: bold; color: var(--accent); margin: 10px 0; border-bottom: 1px dashed var(--border); padding-bottom: 5px; }
-
 .asset-list{ margin-top:16px; display:flex; flex-direction:column; gap:8px; }
 .asset-item{ display:flex; justify-content:space-between; align-items:center; background:var(--bg); padding:8px 12px; border-radius:6px; border:1px solid var(--border); }
 .asset-name{ font-size:14px; color:var(--text); flex:1; margin-right:10px; word-break:break-all;}
@@ -118,43 +151,14 @@ button.warn-btn{ background:transparent; color:var(--warn); border:1px solid var
 </head>
 <body>
 
-<!-- Expanded Color Picker Popup -->
+<!-- Color Picker -->
 <div id="colorPicker">
-  <div class="color-swatch" style="background:#ffffff" title="White" onclick="insertColor('White')"></div>
-  <div class="color-swatch" style="background:#cccccc" title="Silver" onclick="insertColor('Silver')"></div>
-  <div class="color-swatch" style="background:#888888" title="Gray" onclick="insertColor('Gray')"></div>
-  <div class="color-swatch" style="background:#444444" title="DarkGray" onclick="insertColor('#444444')"></div>
-  <div class="color-swatch" style="background:#000000" title="Black" onclick="insertColor('Black')"></div>
-  <div class="color-swatch" style="background:#ffadad" title="Pastel Red" onclick="insertColor('#ffadad')"></div>
-  <div class="color-swatch" style="background:#ffd6a5" title="Pastel Orange" onclick="insertColor('#ffd6a5')"></div>
-  <div class="color-swatch" style="background:#fdffb6" title="Pastel Yellow" onclick="insertColor('#fdffb6')"></div>
-  
-  <div class="color-swatch" style="background:#ff4f4f" title="Red" onclick="insertColor('Red')"></div>
-  <div class="color-swatch" style="background:#ff7f50" title="Coral" onclick="insertColor('Coral')"></div>
-  <div class="color-swatch" style="background:#ffa500" title="Orange" onclick="insertColor('Orange')"></div>
-  <div class="color-swatch" style="background:#ffd700" title="Gold" onclick="insertColor('Gold')"></div>
-  <div class="color-swatch" style="background:#ffff00" title="Yellow" onclick="insertColor('Yellow')"></div>
-  <div class="color-swatch" style="background:#caffbf" title="Pastel Green" onclick="insertColor('#caffbf')"></div>
-  <div class="color-swatch" style="background:#9bf6ff" title="Pastel Cyan" onclick="insertColor('#9bf6ff')"></div>
-  <div class="color-swatch" style="background:#a0c4ff" title="Pastel Blue" onclick="insertColor('#a0c4ff')"></div>
-
-  <div class="color-swatch" style="background:#a52a2a" title="Brown" onclick="insertColor('Brown')"></div>
-  <div class="color-swatch" style="background:#800000" title="Maroon" onclick="insertColor('Maroon')"></div>
-  <div class="color-swatch" style="background:#0db24a" title="Lime" onclick="insertColor('Lime')"></div>
-  <div class="color-swatch" style="background:#008000" title="Green" onclick="insertColor('Green')"></div>
-  <div class="color-swatch" style="background:#00ffff" title="Cyan" onclick="insertColor('Cyan')"></div>
-  <div class="color-swatch" style="background:#008080" title="Teal" onclick="insertColor('Teal')"></div>
-  <div class="color-swatch" style="background:#4f8fff" title="Blue" onclick="insertColor('Blue')"></div>
-  <div class="color-swatch" style="background:#000080" title="Navy" onclick="insertColor('Navy')"></div>
-
-  <div class="color-swatch" style="background:#bdb2ff" title="Pastel Purple" onclick="insertColor('#bdb2ff')"></div>
-  <div class="color-swatch" style="background:#ffc6ff" title="Pastel Pink" onclick="insertColor('#ffc6ff')"></div>
-  <div class="color-swatch" style="background:#d487ae" title="Pink" onclick="insertColor('Pink')"></div>
-  <div class="color-swatch" style="background:#ff00ff" title="Magenta" onclick="insertColor('Magenta')"></div>
-  <div class="color-swatch" style="background:#800080" title="Purple" onclick="insertColor('Purple')"></div>
-  <div class="color-swatch" style="background:#4b0082" title="Indigo" onclick="insertColor('Indigo')"></div>
-  <div class="color-swatch" style="background:#f5f5dc" title="Beige" onclick="insertColor('Beige')"></div>
-  <div class="color-swatch" style="background:#2a2a2a" title="Charcoal" onclick="insertColor('#2a2a2a')"></div>
+  <div class="color-swatch" style="background:#ffffff" onclick="insertColor('White')"></div>
+  <div class="color-swatch" style="background:#000000" onclick="insertColor('Black')"></div>
+  <div class="color-swatch" style="background:#ff4f4f" onclick="insertColor('Red')"></div>
+  <div class="color-swatch" style="background:#0db24a" onclick="insertColor('Green')"></div>
+  <div class="color-swatch" style="background:#4f8fff" onclick="insertColor('Blue')"></div>
+  <div class="color-swatch" style="background:#ffff00" onclick="insertColor('Yellow')"></div>
 </div>
 
 <div class="header">
@@ -164,33 +168,35 @@ button.warn-btn{ background:transparent; color:var(--warn); border:1px solid var
       <div class="menu-row"><button onclick="saveProject()">Save Project (.mini)</button></div>
       <div class="menu-row"><label for="fileInput" style="cursor:pointer">Open Project (.mini)</label></div>
       <div style="height:1px;background:var(--border);margin:6px 0"></div>
-      <div class="menu-row"><button onclick="saveGame()">Export Game (.minigame)</button></div>
-      <!-- ADDED HTML EXPORT BUTTON HERE -->
       <div class="menu-row"><button onclick="exportToHtml()" style="color:var(--accent); font-weight:bold;">Export as HTML Website</button></div>
-      <div class="menu-row"><label for="gameInput" style="cursor:pointer;">▶ Play Game (.minigame)</label></div>
       <div style="height:1px;background:var(--border);margin:6px 0"></div>
       <div class="menu-row"><label><input type="checkbox" id="runNewTabToggle"/> Run In New Tab</label></div>
     </div>
   </div>
-  <div style="font-weight:700; color:var(--accent)">MiniLang Studio v10.2</div>
+  <div style="font-weight:700; color:var(--accent)">MiniLang Studio v12.2</div>
+  
+  <!-- Resolution Changer -->
+  <div class="res-inputs" style="margin-left:20px;">
+    Res: <input type="number" id="resW" value="640" onchange="updateResolution()"> x <input type="number" id="resH" value="360" onchange="updateResolution()">
+  </div>
+  
   <div style="flex:1"></div>
   <select id="themeSelect" onchange="changeTheme(this.value)">
     <option value="system">System</option><option value="dark">Dark</option><option value="light">Light</option>
-  </select>
-  <select id="version-select">
-    <option value="v4">MiniLang v4</option>
-    <option value="simple">MiniLang Simple</option>
   </select>
 </div>
 
 <div class="tabs">
   <div class="tab active" data-tab="editor" onclick="openTab('editor')">Editor</div>
+  <div class="tab" data-tab="ui" onclick="openTab('ui')">UI Maker</div>
   <div class="tab" data-tab="sounds" onclick="openTab('sounds')">Sounds</div>
   <div class="tab" data-tab="images" onclick="openTab('images')">Images</div>
   <div class="tab" data-tab="docs" onclick="openTab('docs')">Docs</div>
 </div>
 
 <div class="container">
+  
+  <!-- EDITOR SECTION -->
   <section class="editor" id="editorSection">
     <div class="topbar">
       <div><strong>Code</strong></div>
@@ -203,39 +209,65 @@ button.warn-btn{ background:transparent; color:var(--warn); border:1px solid var
     </div>
     <div class="editor-container">
         <pre id="highlighting" aria-hidden="true"></pre>
-        <textarea id="code" spellcheck="false" oninput="updateHighlighting()" onscroll="syncScroll()">-- Colorful Text Adventure
-BackgroundColor("#222")
-Title("The Dark Cave")
-print("You find a mysterious cave...")
-print("")
-
-PrintColor("Gold")
-print("Options: Enter, Run")
-PrintColor("White")
-
-Choice = input
-
-if Choice = "Enter" then
-    BackgroundColor("Black")
-    PrintColor("Red")
-    print("You enter the pitch black cave...")
-else
-    BackgroundColor("SkyBlue")
-    PrintColor("Black")
-    print("You run out into the sunlight.")
-end
-</textarea>
+        <textarea id="code" spellcheck="false" oninput="updateHighlighting()" onscroll="syncScroll()"></textarea>
     </div>
-    <div id="output"></div>
+    <div style="margin-top:12px; font-size:12px; color:var(--text-muted); margin-bottom:4px;">Game Output</div>
+    <div class="game-stage-wrapper">
+        <div id="output" class="game-stage"></div>
+    </div>
   </section>
 
+  <!-- UI MAKER SECTION -->
+  <section class="editor" id="uiSection" style="display:none">
+    <div class="topbar"><strong>UI Maker</strong></div>
+    <div class="ui-builder-layout">
+        <!-- Canvas Container Centers the Fixed Stage -->
+        <div class="ui-canvas-container">
+            <div id="uiCanvas" class="game-stage" ondrop="dropUI(event)" ondragover="allowDrop(event)" onclick="deselectUI(event)">
+                <!-- UI Elements -->
+            </div>
+        </div>
+        
+        <div class="ui-toolbar">
+            <button class="insert-btn" onclick="addUIElement()">+ Add Text</button>
+            <div id="propPanel" style="display:none">
+                <div style="font-weight:bold; margin-bottom:8px; color:var(--accent)">Properties</div>
+                
+                <div class="prop-group">
+                    <label style="color:var(--accent)">Element Name (ID)</label>
+                    <input type="text" id="pName" placeholder="e.g. Text1" oninput="updateUIProp('name', this.value)">
+                </div>
+                
+                <div class="prop-group">
+                    <label>Text Content</label>
+                    <input type="text" id="pContent" oninput="updateUIProp('content', this.value)">
+                </div>
+                <div class="prop-group">
+                    <label style="color:var(--accent)">Bind Variable (e.g. Score)</label>
+                    <input type="text" id="pVar" placeholder="Variable Name" oninput="updateUIProp('varName', this.value)">
+                </div>
+                <div class="prop-group">
+                    <label>Color</label>
+                    <input type="text" id="pColor" oninput="updateUIProp('color', this.value)">
+                </div>
+                <div class="prop-group">
+                    <label>Size (px)</label>
+                    <input type="number" id="pSize" oninput="updateUIProp('size', this.value)">
+                </div>
+                <button class="danger-btn" onclick="deleteSelectedUI()" style="width:100%; margin-top:8px">Delete</button>
+            </div>
+            <div id="noSelMsg" style="margin-top:20px; color:var(--text-muted); font-size:12px; text-align:center">
+                Select an element to edit properties.
+            </div>
+        </div>
+    </div>
+  </section>
+
+  <!-- OTHER TABS -->
   <section class="editor" id="soundsSection" style="display:none">
     <div class="topbar"><strong>Sounds</strong></div>
     <div style="margin-top:16px;">
-      <div class="upload-zone" onclick="document.getElementById('soundInput').click()">
-        Click to Upload (.mp3, .wav)
-        <input type="file" id="soundInput" accept=".mp3,.wav,.m4a" multiple style="display:none" onchange="handleAssetUpload(this, 'sound')"/>
-      </div>
+      <div class="upload-zone" onclick="document.getElementById('soundInput').click()">Click to Upload<input type="file" id="soundInput" accept=".mp3,.wav,.m4a" multiple style="display:none" onchange="handleAssetUpload(this, 'sound')"/></div>
       <div class="asset-list" id="soundList"></div>
     </div>
   </section>
@@ -243,10 +275,7 @@ end
   <section class="editor" id="imagesSection" style="display:none">
     <div class="topbar"><strong>Images</strong></div>
     <div style="margin-top:16px;">
-      <div class="upload-zone" onclick="document.getElementById('imageInput').click()">
-        Click to Upload (.png, .jpg, .gif)
-        <input type="file" id="imageInput" accept=".png,.jpg,.jpeg,.gif" multiple style="display:none" onchange="handleAssetUpload(this, 'image')"/>
-      </div>
+      <div class="upload-zone" onclick="document.getElementById('imageInput').click()">Click to Upload<input type="file" id="imageInput" accept=".png,.jpg,.jpeg,.gif" multiple style="display:none" onchange="handleAssetUpload(this, 'image')"/></div>
       <div class="asset-list" id="imageList"></div>
     </div>
   </section>
@@ -254,39 +283,27 @@ end
   <section class="editor" id="docsSection" style="display:none; overflow-y:auto; max-height:600px">
     <div class="topbar"><strong>Full Documentation</strong></div>
     <div style="margin-top:16px;">
+      <h3>UI Commands</h3>
+      <table class="doc-table">
+        <tr><td>Name:Text("Str")</td><td>Change UI text content.<br>Ex: <code>Status:Text("HP: 100")</code></td></tr>
+        <tr><td>Name:Hide</td><td>Hide UI Element.</td></tr>
+        <tr><td>Name:Show</td><td>Show UI Element.</td></tr>
+      </table>
+      <div class="sep"></div>
       <h3>Text & Display</h3>
       <table class="doc-table">
         <tr><td>Title("Text")</td><td>Sets the Browser Tab Name.</td></tr>
         <tr><td>print("Text")</td><td>Prints normal text to the screen.</td></tr>
         <tr><td>PrintColor("Color")</td><td>Sets text color (Red, #ff0000).</td></tr>
-        <tr><td>PrintSize(Number)</td><td>Sets font size.</td></tr>
         <tr><td>BackgroundColor("Col")</td><td>Sets the screen background color.</td></tr>
         <tr><td>ClearOutput</td><td>Removes all text (keeps images).</td></tr>
       </table>
       <div class="sep"></div>
-      <h3>Variables & Math</h3>
-      <table class="doc-table">
-        <tr><td>Name = 10</td><td>Sets variable.</td></tr>
-        <tr><td>Name = input</td><td>Asks the player.</td></tr>
-        <tr><td>Change Name By 1</td><td>Adds/Subtracts.</td></tr>
-      </table>
-      <div class="sep"></div>
-      <h3>Logic</h3>
-      <table class="doc-table">
-        <tr><td>Forever ... end</td><td>Infinite loop.</td></tr>
-        <tr><td>if Cond then</td><td>Checks condition.</td></tr>
-        <tr><td>elseif / else</td><td>Alternative paths.</td></tr>
-        <tr><td>wait(Sec)</td><td>Wait.</td></tr>
-        <tr><td>if Key Pressed then</td><td>Check key hold.</td></tr>
-      </table>
-      <div class="sep"></div>
-      <h3>Visuals & Audio</h3>
+      <h3>Visuals</h3>
       <table class="doc-table">
         <tr><td>Name:Draw(x, y)</td><td>Draws image.</td></tr>
         <tr><td>Name:Move(x, y)</td><td>Moves image.</td></tr>
         <tr><td>Name:FullScreen</td><td>Background image.</td></tr>
-        <tr><td>Name:Hide / :Show</td><td>Toggle visibility.</td></tr>
-        <tr><td>Name:Play</td><td>Plays sound.</td></tr>
       </table>
     </div>
   </section>
@@ -294,70 +311,71 @@ end
   <aside class="sidebar">
     <div class="doc-section">
       <h3>Quick Inserts</h3>
-      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode(`Title(&quot;Header&quot;)`)">Title</button>
-      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode(`print(&quot;Hello&quot;)`)">Print</button>
-      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode(`PrintColor(&quot;&quot;)`)">Print Color</button>
-      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode(`PrintSize(20)`)">Print Size</button>
-      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode(`BackgroundColor(&quot;&quot;)`)">BG Color</button>
-      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode('wait(1)')">Wait</button>
-      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode('ClearOutput')">ClearOutput</button>
-      
+      <button class="insert-btn" onclick="insertCode(`Title(&quot;Header&quot;)`)">Title</button>
+      <button class="insert-btn" onclick="insertCode(`print(&quot;Hello&quot;)`)">Print</button>
+      <button class="insert-btn" onclick="insertCode(`PrintColor(&quot;&quot;)`)">Print Color</button>
+      <button class="insert-btn" onclick="insertCode(`UiName:Text(&quot;Hello&quot;)`)">Set UI Text</button>
+      <button class="insert-btn" onclick="insertCode(`BackgroundColor(&quot;&quot;)`)">BG Color</button>
+      <button class="insert-btn" onclick="insertCode('wait(1)')">Wait</button>
+      <button class="insert-btn" onclick="insertCode('ClearOutput')">ClearOutput</button>
       <div style="height:8px"></div>
-      
-      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertAssetCommand('sound')">Play Sound</button>
-      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertAssetCommand('image')">Draw Image</button>
-      
+      <button class="insert-btn" onclick="insertAssetCommand('sound')">Play Sound</button>
+      <button class="insert-btn" onclick="insertAssetCommand('image')">Draw Image</button>
       <div style="height:8px"></div>
-
-      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode('Forever\n    \nend')">Forever Loop</button>
-      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode('if 1=1 then\n    \nelse\n    \nend')">If / Else</button>
+      <button class="insert-btn" onclick="insertCode('Forever\n    \nend')">Forever Loop</button>
+      <button class="insert-btn" onclick="insertCode('if 1=1 then\n    \nelse\n    \nend')">If / Else</button>
     </div>
-    <div class="doc-section"><h3>Snippets</h3><div id="extra-inserts"></div></div>
   </aside>
 </div>
 
 <input type="file" id="fileInput" accept=".mini,.lang,.txt" style="display:none" onchange="loadProject(this)"/>
-<input type="file" id="gameInput" accept=".minigame" style="display:none" onchange="runGameFile(this)"/>
 
 <script>
 /* --- 1. Global State --- */
-const CURRENT_VERSION = 10.2;
+const CURRENT_VERSION = 12.2;
 const assets = { sounds: {}, images: {} }; 
 const soundObjects = {}; 
+let uiElements = []; 
+let uiIdCounter = 0;
+let selectedUIId = null;
 let stopFlag = false;
+let GAME_W = 640;
+let GAME_H = 360;
 
-/* --- 2. Color Picker Logic --- */
+/* --- 2. Resolution Management --- */
+function updateResolution(){
+  GAME_W = parseInt(document.getElementById('resW').value) || 640;
+  GAME_H = parseInt(document.getElementById('resH').value) || 360;
+  
+  const stages = document.querySelectorAll('.game-stage');
+  stages.forEach(el => {
+    el.style.width = GAME_W + 'px';
+    el.style.height = GAME_H + 'px';
+  });
+}
+// Initialize
+updateResolution();
+
+/* --- 3. Color Picker & Theme --- */
 const colorPicker = document.getElementById('colorPicker');
 const textarea = document.getElementById('code');
 
-// Show Picker on Click inside quotes of specific commands
 textarea.addEventListener('click', (e) => {
   const pos = textarea.selectionStart;
   const val = textarea.value;
   const before = val.substring(0, pos);
-  
   if(before.trim().endsWith('PrintColor("') || before.trim().endsWith("PrintColor('") ||
      before.trim().endsWith('BackgroundColor("') || before.trim().endsWith("BackgroundColor('")) {
       colorPicker.style.display = 'grid';
       colorPicker.style.left = e.clientX + 'px';
       colorPicker.style.top = e.clientY + 'px';
-  } else {
-      colorPicker.style.display = 'none';
-  }
+  } else { colorPicker.style.display = 'none'; }
 });
-
 document.addEventListener('click', (e) => {
-  if(e.target !== textarea && !colorPicker.contains(e.target) && !e.target.classList.contains('insert-btn')) {
-      colorPicker.style.display = 'none';
-  }
+  if(e.target !== textarea && !colorPicker.contains(e.target) && !e.target.classList.contains('insert-btn')) colorPicker.style.display = 'none';
 });
+function insertColor(c) { insertCode(c); colorPicker.style.display = 'none'; }
 
-function insertColor(c) {
-    insertCode(c);
-    colorPicker.style.display = 'none';
-}
-
-/* --- 3. Theme & UI --- */
 function changeTheme(val) {
   if(val==='system'){
     document.documentElement.removeAttribute('data-theme');
@@ -373,11 +391,97 @@ document.onclick=()=>fileMenu.style.display='none';
 function openTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelector(`.tab[data-tab="${name}"]`).classList.add('active');
-  ['editor','sounds','images','docs'].forEach(n=>document.getElementById(n+'Section').style.display='none');
+  ['editor','ui','sounds','images','docs'].forEach(n=>document.getElementById(n+'Section').style.display='none');
   document.getElementById(`${name}Section`).style.display='block';
 }
 
-/* --- 4. Assets --- */
+/* --- 4. UI MAKER LOGIC --- */
+const uiCanvas = document.getElementById('uiCanvas');
+const propPanel = document.getElementById('propPanel');
+const noSelMsg = document.getElementById('noSelMsg');
+
+function addUIElement(){
+    uiIdCounter++;
+    const name = "Text" + uiIdCounter;
+    // Default position at center-ish
+    const el = { id: uiIdCounter, name: name, x: GAME_W/2-30, y: GAME_H/2-10, content: "Text", varName: "", color: "white", size: 16 };
+    uiElements.push(el);
+    renderUIBuilder();
+    selectUI(el.id);
+}
+
+function renderUIBuilder(){
+    uiCanvas.innerHTML = '';
+    uiElements.forEach(el => {
+        const d = document.createElement('div');
+        d.className = 'ui-element' + (selectedUIId === el.id ? ' selected' : '');
+        d.style.left = el.x + 'px'; d.style.top = el.y + 'px';
+        d.style.color = el.color; d.style.fontSize = el.size + 'px';
+        d.innerText = el.content + (el.varName ? ` [$${el.varName}]` : '');
+        d.title = el.name; // Show Name on Hover
+        
+        d.draggable = true;
+        d.ondragstart = (e) => { 
+            e.dataTransfer.setData("id", el.id); 
+            // Save offset so we drag exactly where clicked
+            const rect = d.getBoundingClientRect();
+            e.dataTransfer.setData("offsetX", e.clientX - rect.left);
+            e.dataTransfer.setData("offsetY", e.clientY - rect.top);
+        };
+        d.onclick = (e) => { e.stopPropagation(); selectUI(el.id); };
+        uiCanvas.appendChild(d);
+    });
+}
+
+function allowDrop(ev) { ev.preventDefault(); }
+function dropUI(ev) {
+    ev.preventDefault();
+    const id = parseInt(ev.dataTransfer.getData("id"));
+    const offX = parseInt(ev.dataTransfer.getData("offsetX")) || 0;
+    const offY = parseInt(ev.dataTransfer.getData("offsetY")) || 0;
+    
+    const rect = uiCanvas.getBoundingClientRect(); 
+    const el = uiElements.find(e => e.id === id);
+    if(el){
+        // Calculate relative position with offset
+        el.x = ev.clientX - rect.left - offX;
+        el.y = ev.clientY - rect.top - offY;
+        renderUIBuilder(); selectUI(id);
+    }
+}
+
+function selectUI(id){
+    selectedUIId = id;
+    const el = uiElements.find(e => e.id === id);
+    if(el){
+        propPanel.style.display='block'; noSelMsg.style.display='none';
+        document.getElementById('pName').value = el.name;
+        document.getElementById('pContent').value = el.content;
+        document.getElementById('pVar').value = el.varName;
+        document.getElementById('pColor').value = el.color;
+        document.getElementById('pSize').value = el.size;
+    } else deselectUI();
+    renderUIBuilder();
+}
+
+function deselectUI(e){
+    if(e && e.target !== uiCanvas) return;
+    selectedUIId = null;
+    propPanel.style.display='none'; noSelMsg.style.display='block';
+    renderUIBuilder();
+}
+
+function updateUIProp(key, val){
+    const el = uiElements.find(e => e.id === selectedUIId);
+    if(el){ el[key] = val; renderUIBuilder(); }
+}
+
+function deleteSelectedUI(){
+    uiElements = uiElements.filter(e => e.id !== selectedUIId);
+    deselectUI();
+}
+
+/* --- 5. Assets --- */
 function handleAssetUpload(input, type){
   if(!input.files.length) return;
   for(let f of input.files){
@@ -387,11 +491,10 @@ function handleAssetUpload(input, type){
       if(type==='sound'){
         assets.sounds[f.name] = dataUrl;
         soundObjects[f.name] = new Audio(dataUrl);
-        renderAssetList('sound');
       } else {
         assets.images[f.name] = dataUrl;
-        renderAssetList('image');
       }
+      renderAssetList(type);
     };
     reader.readAsDataURL(f);
   }
@@ -405,22 +508,11 @@ function renderAssetList(type){
   if(Object.keys(store).length === 0) { list.innerHTML = `<div style="padding:10px;color:var(--text-muted)">No ${type}s.</div>`; return; }
 
   Object.keys(store).forEach(name => {
-    const item = document.createElement('div');
-    item.className = 'asset-item';
+    const item = document.createElement('div'); item.className = 'asset-item';
     const span = document.createElement('span'); span.className='asset-name'; span.innerText=name;
     const delBtn = document.createElement('button'); delBtn.className='danger-btn'; delBtn.innerText='✕';
     delBtn.onclick = () => { delete store[name]; if(type==='sound') delete soundObjects[name]; renderAssetList(type); };
-    if(type==='sound'){
-      const playBtn = document.createElement('button'); playBtn.className='small-ghost'; playBtn.innerText='▶';
-      playBtn.style.marginRight='6px';
-      playBtn.onclick=()=>{ soundObjects[name].currentTime=0; soundObjects[name].play(); };
-      item.append(span, playBtn, delBtn);
-    } else {
-      const imgPreview = document.createElement('img');
-      imgPreview.src = store[name];
-      imgPreview.style.height = '30px'; imgPreview.style.marginRight='10px';
-      item.append(imgPreview, span, delBtn);
-    }
+    item.append(span, delBtn);
     list.append(item);
   });
 }
@@ -433,7 +525,7 @@ function insertAssetCommand(type){
   else insertCode(`${name}:Draw(10, 10)`);
 }
 
-/* --- 5. Editor --- */
+/* --- 6. Editor --- */
 const pre = document.getElementById('highlighting');
 let savedSel = {s:0,e:0};
 function saveSel(){ savedSel={s:textarea.selectionStart,e:textarea.selectionEnd}; }
@@ -451,7 +543,7 @@ function insertCode(str){
 function updateHighlighting() {
   let t = textarea.value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   t = t.replace(/\(([^)\n]*)\)/g, '(<span class="c-purple">$1</span>)');
-  t = t.replace(/(:Play|:StopPlay|:Draw|:Move|:FullScreen|:Hide|:Show)\b/g, '<span class="c-pink">$1</span>');
+  t = t.replace(/(:Play|:StopPlay|:Draw|:Move|:FullScreen|:Hide|:Show|:Text)\b/g, '<span class="c-pink">$1</span>');
   t = t.replace(/\b(print|Title|PrintSize|PrintColor|BackgroundColor)\b/g, '<span class="c-yellow">$1</span>');
   t = t.replace(/\b(input)\b/g, '<span class="c-cyan">$1</span>');
   t = t.replace(/\b(ClearOutput|ClearImages)\b/g, '<span class="c-green">$1</span>');
@@ -462,7 +554,6 @@ function updateHighlighting() {
   pre.innerHTML = t + '<br>';
 }
 function syncScroll() { pre.scrollTop=textarea.scrollTop; pre.scrollLeft=textarea.scrollLeft; }
-
 textarea.addEventListener('keydown', function(e){
   if(e.key==='Tab'){ e.preventDefault(); document.execCommand('insertText', false, "    "); }
   if(e.key === 'Enter'){
@@ -478,22 +569,11 @@ textarea.addEventListener('keydown', function(e){
 });
 updateHighlighting();
 
-/* --- 6. Project I/O --- */
-function migrateProject(proj){
-    if(typeof proj === 'string') return { version: CURRENT_VERSION, code: proj, assets: { sounds: {}, images: {} } };
-    if(!proj.assets) proj.assets = { sounds: {}, images: {} };
-    proj.version = CURRENT_VERSION;
-    return proj;
-}
+/* --- 7. Project I/O --- */
 function saveProject(){
-  const project = { version: CURRENT_VERSION, code: textarea.value, assets: assets };
+  const project = { version: CURRENT_VERSION, code: textarea.value, assets: assets, ui: uiElements, w: GAME_W, h: GAME_H };
   const blob = new Blob([JSON.stringify(project)], {type:'application/json'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'project.mini'; a.click();
-}
-function saveGame(){
-  const project = { version: CURRENT_VERSION, code: textarea.value, assets: assets };
-  const blob = new Blob([JSON.stringify(project)], {type:'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'game.minigame'; a.click();
 }
 function loadProject(input){
   const file = input.files[0];
@@ -501,58 +581,29 @@ function loadProject(input){
   const reader = new FileReader();
   reader.onload = e => { 
     try {
-      let raw = e.target.result; let proj;
-      try { proj = JSON.parse(raw); } catch { proj = raw; }
-      proj = migrateProject(proj);
-      textarea.value = proj.code;
-      assets.sounds = proj.assets.sounds || {};
-      assets.images = proj.assets.images || {};
-      for(let k in assets.sounds) soundObjects[k] = new Audio(assets.sounds[k]);
-      renderAssetList('sound'); renderAssetList('image');
+      const proj = JSON.parse(e.target.result);
+      textarea.value = proj.code || "";
+      assets.sounds = proj.assets?.sounds || {};
+      assets.images = proj.assets?.images || {};
+      uiElements = proj.ui || [];
+      if(proj.w){
+          document.getElementById('resW').value = proj.w;
+          document.getElementById('resH').value = proj.h;
+          updateResolution();
+      }
+      renderAssetList('sound'); renderAssetList('image'); renderUIBuilder();
       updateHighlighting();
     } catch(err) { alert("Failed to load file."); }
   };
   reader.readAsText(file);
 }
-function runGameFile(input){
-  const file = input.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      let raw = e.target.result; let proj;
-      try { proj = JSON.parse(raw); } catch { proj = raw; }
-      proj = migrateProject(proj);
-      openRunner(proj.code, proj.assets);
-    } catch(err) { alert("Invalid Game File"); }
-  };
-  reader.readAsText(file);
-}
-
-/* --- 7. Snippets --- */
-const snippets = [
-  {l:"Variable", c:"Money = 0"}, {l:"Input", c:'Name = input("Enter Name: ")'},
-  {l:"Change Var", c:"Change Money By 1"}, {l:"Key Wait", c:"if K Pressed then\n    \nend"} 
-];
-const extraDiv = document.getElementById('extra-inserts');
-snippets.forEach(i=>{
-    const b=document.createElement('button'); b.className='insert-btn'; b.innerText=i.l;
-    b.onmousedown = (e)=>e.preventDefault(); b.onclick=()=>insertCode(i.c); extraDiv.appendChild(b);
-});
 
 /* --- 8. Interpreter --- */
 const keysDown = {};
 document.addEventListener('keydown', e=> keysDown[e.key.toUpperCase()] = true);
 document.addEventListener('keyup', e=> keysDown[e.key.toUpperCase()] = false);
 
-function normalizeKey(k){
-  k = k.toUpperCase().trim();
-  if(k==="SPACE") return " ";
-  if(k==="ENTER") return "ENTER";
-  return k; 
-}
-
-function clearOutput(){ document.getElementById('output').innerHTML = ''; document.getElementById('output').style.background = ''; }
+function clearOutput(){ document.getElementById('output').innerHTML = ''; document.getElementById('output').style.background = '#111'; }
 function stopExecution(){ 
   stopFlag = true;
   document.getElementById('statusIndicator').classList.remove('running');
@@ -583,25 +634,6 @@ function evalExpr(expr, vars){
 }
 
 function getImgId(name) { return 'img-' + name.replace(/[^a-zA-Z0-9]/g, ''); }
-function manageImage(action, name, x, y){
-    const id = getImgId(name);
-    let img = document.getElementById(id);
-    if(action === 'Draw'){
-        if(!assets.images[name]) return;
-        if(!img){
-            img = document.createElement('img'); img.id = id;
-            img.src = assets.images[name]; img.style.position = 'absolute';
-            img.className = 'runtime-image';
-            document.getElementById('output').appendChild(img);
-        }
-        img.style.left = x + 'px'; img.style.top = y + 'px';
-        img.style.width = 'auto'; img.style.height = 'auto'; img.style.display = 'block';
-    }
-    else if(action === 'Move'){ if(img){ img.style.left = x + 'px'; img.style.top = y + 'px'; } }
-    else if(action === 'FullScreen'){ if(img){ img.style.left='0'; img.style.top='0'; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; } }
-    else if(action === 'Hide'){ if(img) img.style.display = 'none'; }
-    else if(action === 'Show'){ if(img) img.style.display = 'block'; }
-}
 
 async function run(){
   stopFlag = false;
@@ -613,12 +645,86 @@ async function run(){
   const outputEl = document.getElementById('output');
   let currentFontSize = 16;
   let currentColor = ''; 
+  
+  // Render Initial UI in Output
+  const runtimeUIRefs = [];
+  uiElements.forEach(el => {
+      const d = document.createElement('div');
+      d.style.position = 'absolute';
+      d.style.left = el.x + 'px'; d.style.top = el.y + 'px';
+      d.style.color = el.color; d.style.fontSize = el.size + 'px';
+      d.innerText = el.content;
+      d.style.zIndex = 10;
+      outputEl.appendChild(d);
+      runtimeUIRefs.push({ dom: d, data: el });
+  });
+
+  function updateRuntimeUI(){
+      runtimeUIRefs.forEach(ref => {
+          if(ref.data.varName && vars[ref.data.varName] !== undefined){
+              ref.dom.innerText = ref.data.content + " " + vars[ref.data.varName];
+          }
+      });
+  }
+
+  // Handle Command like Name:Text("Hello")
+  function handleUICommand(line){
+      const match = line.match(/^([a-zA-Z0-9_]+):Text\((.*)\)/);
+      if(match){
+          const uiName = match[1];
+          const contentExpr = match[2];
+          
+          let finalContent = "";
+          const parts = contentExpr.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+          parts.forEach(p=>{
+             p=p.trim();
+             if(p.startsWith('"')||p.startsWith("'")) finalContent += p.slice(1,-1);
+             else if(vars.hasOwnProperty(p)) finalContent += vars[p]; 
+             else finalContent += p;
+          });
+
+          const ref = runtimeUIRefs.find(r => r.data.name === uiName);
+          if(ref){
+             ref.dom.innerText = finalContent;
+             ref.data.content = finalContent; 
+          }
+          return true;
+      }
+      return false;
+  }
+
+  function manageImage(action, nameOrVar, x, y){
+    let realName = nameOrVar;
+    if(!assets.images[realName] && vars[nameOrVar] && assets.images[vars[nameOrVar]]) {
+        realName = vars[nameOrVar];
+    }
+    
+    const id = getImgId(nameOrVar); 
+    let img = document.getElementById(id);
+
+    if(action === 'Draw'){
+        if(!assets.images[realName]) return;
+        if(!img){
+            img = document.createElement('img'); img.id = id;
+            img.src = assets.images[realName]; img.style.position = 'absolute';
+            img.className = 'runtime-image';
+            outputEl.appendChild(img);
+        } else {
+            if(img.src !== assets.images[realName]) img.src = assets.images[realName];
+        }
+        img.style.left = x + 'px'; img.style.top = y + 'px';
+        img.style.width = 'auto'; img.style.height = 'auto'; img.style.display = 'block';
+    }
+    else if(action === 'Move'){ if(img){ img.style.left = x + 'px'; img.style.top = y + 'px'; } }
+    else if(action === 'FullScreen'){ if(img){ img.style.left='0'; img.style.top='0'; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; } }
+    else if(action === 'Hide'){ if(img) img.style.display = 'none'; }
+    else if(action === 'Show'){ if(img) img.style.display = 'block'; }
+  }
 
   function doPrint(line){
     const m = line.match(/\((.*)\)/); if(!m) return;
     const content = m[1];
     const parts = content.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-    
     let finalStr = "";
     parts.forEach(p=>{
       p=p.trim();
@@ -627,37 +733,25 @@ async function run(){
       else finalStr += p;
       finalStr += " ";
     });
-    
     const el = document.createElement('div');
     if(finalStr.trim() === "") el.innerHTML = "&nbsp;";
     else el.innerText = finalStr.trim();
-    
     el.style.fontSize = currentFontSize + 'px';
     if(currentColor) el.style.color = currentColor;
     outputEl.appendChild(el);
-  }
-
-  function handleTitle(line){
-    const m = line.match(/\((.*)\)/); if(!m) return;
-    const content = m[1];
-    const parts = content.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-    let finalStr = "";
-    parts.forEach(p=>{
-        p=p.trim();
-        if(p.startsWith('"')||p.startsWith("'")) finalStr += p.slice(1,-1);
-        else if(vars.hasOwnProperty(p)) finalStr += vars[p]; 
-        else finalStr += p;
-        finalStr += " ";
-    });
-    document.title = finalStr.trim();
+    outputEl.scrollTop = outputEl.scrollHeight;
   }
 
   async function runBlock(blockLines){
     for(let i=0; i<blockLines.length && !stopFlag; i++){
       let line = blockLines[i].trim();
+      updateRuntimeUI(); 
+      
       if(!line || line.startsWith('--') || line.startsWith('#')) continue;
 
       try {
+        if(handleUICommand(line)) continue;
+
         if(line.startsWith('PrintSize(')){
             const size = parseFloat(line.match(/\((.*)\)/)[1]);
             if(!isNaN(size)) currentFontSize = size;
@@ -702,9 +796,13 @@ async function run(){
           const sec = parseFloat(line.match(/\((.*)\)/)[1]) || 0;
           await new Promise(r=>setTimeout(r, sec*1000)); continue;
         }
-        if(line.startsWith('Title')) { handleTitle(line); continue; }
+        if(line.startsWith('Title')) { 
+           const m = line.match(/\((.*)\)/); 
+           if(m) document.title = m[1].replace(/['"]/g,''); 
+           continue; 
+        }
         if(line.startsWith('print')) { doPrint(line); continue; }
-        if(line === 'ClearOutput') { Array.from(outputEl.children).forEach(c => { if(!c.classList.contains('runtime-image')) c.remove(); }); continue; }
+        if(line === 'ClearOutput') { Array.from(outputEl.children).forEach(c => { if(!c.classList.contains('runtime-image') && !c.classList.contains('runtime-ui')) c.remove(); }); continue; }
         
         if(line.startsWith("Change ")){
           const parts = line.substring(7).split(" By ");
@@ -748,12 +846,12 @@ async function run(){
              let met = false;
              if(br.cond === 'true') met = true;
              else if(br.cond.includes('Pressed')){
-                 const k = normalizeKey(br.cond.replace('Pressed',''));
+                 const k = br.cond.replace('Pressed','').trim().toUpperCase();
                  if(keysDown[k]) met = true;
              } else { met = evalExpr(br.cond, vars); }
              if(met){
                  await runBlock(br.block);
-                 if(br.cond.includes('Pressed')){ const k = normalizeKey(br.cond.replace('Pressed','')); while(keysDown[k] && !stopFlag) await new Promise(r=>setTimeout(r,20)); }
+                 if(br.cond.includes('Pressed')){ const k = br.cond.replace('Pressed','').trim().toUpperCase(); while(keysDown[k] && !stopFlag) await new Promise(r=>setTimeout(r,20)); }
                  break; 
              }
           }
@@ -763,7 +861,7 @@ async function run(){
         if(line.includes('=') && !line.startsWith('if')){
           const [lhs, rhs] = line.split('=').map(s=>s.trim());
           if(rhs.toLowerCase().startsWith('input')) {
-              await new Promise(r=>setTimeout(r, 50)); // Allow render
+              await new Promise(r=>setTimeout(r, 50)); 
               vars[lhs] = prompt("Input:");
           }
           else vars[lhs] = evalExpr(rhs, vars);
@@ -771,29 +869,66 @@ async function run(){
       } catch(err) { printError(err.message); return; }
     }
   }
-  try { await runBlock(lines); while(!stopFlag){ await new Promise(r=>setTimeout(r, 100)); } } 
+  try { await runBlock(lines); while(!stopFlag){ await new Promise(r=>setTimeout(r, 100)); updateRuntimeUI(); } } 
   catch(e) { printError("Runtime: " + e.message); }
 }
 
-/* --- 9. NEW TAB RUNNER & EXPORT LOGIC --- */
+/* --- 9. Export Logic (Updated to use Fixed Stage & UI Commands) --- */
 const runNewTabToggle = document.getElementById('runNewTabToggle');
 async function onRunClicked(){
-  if(runNewTabToggle.checked){ openRunner(textarea.value, assets); } else { run(); }
+  if(runNewTabToggle.checked){ openRunner(textarea.value, assets, uiElements); } else { run(); }
 }
 
-// SHARED RUNTIME SCRIPT GENERATOR
-function getRuntimeScript(codeStr, assetsObj){
+function getRuntimeScript(codeStr, assetsObj, uiObj){
     return `
     const code = ${JSON.stringify(codeStr)}; 
     const assets = ${JSON.stringify(assetsObj)};
-    const vars = {}; const keysDown = {}; let stopFlag = false; const log = document.getElementById('log');
-    let currentFontSize = 16;
-    let currentColor = '';
+    const uiElements = ${JSON.stringify(uiObj)};
+    const GAME_W = ${GAME_W}; const GAME_H = ${GAME_H};
+    const vars = {}; const keysDown = {}; let stopFlag = false; 
+    const log = document.getElementById('output');
+    let currentFontSize = 16; let currentColor = '';
     const sounds = {}; for(let k in assets.sounds) sounds[k] = new Audio(assets.sounds[k]);
+    
     document.addEventListener('keydown', e=>keysDown[e.key.toUpperCase()]=true);
     document.addEventListener('keyup', e=>keysDown[e.key.toUpperCase()]=false);
-    function normalizeKey(k){ k=k.toUpperCase().trim(); if(k==="SPACE")return " "; return k; }
     
+    // RENDER INITIAL UI
+    const uiRefs = [];
+    uiElements.forEach(el => {
+        const d = document.createElement('div');
+        d.style.position = 'absolute'; d.style.left = el.x + 'px'; d.style.top = el.y + 'px';
+        d.style.color = el.color; d.style.fontSize = el.size + 'px';
+        d.innerText = el.content; d.style.zIndex = 10;
+        log.appendChild(d);
+        uiRefs.push({dom:d, data:el});
+    });
+
+    function updateUI(){
+        uiRefs.forEach(ref => {
+            if(ref.data.varName && vars[ref.data.varName]!==undefined) 
+                ref.dom.innerText = ref.data.content + " " + vars[ref.data.varName];
+        });
+    }
+
+    function handleUICommand(line){
+        const match = line.match(/^([a-zA-Z0-9_]+):Text\\((.*)\\)/);
+        if(match){
+            let finalContent = "";
+            let parts = match[2].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            parts.forEach(p=>{
+                p=p.trim();
+                if(p.startsWith('"')||p.startsWith("'")) finalContent += p.slice(1,-1);
+                else if(vars[p]!==undefined) finalContent += vars[p]; 
+                else finalContent += p;
+            });
+            const ref = uiRefs.find(r => r.data.name === match[1]);
+            if(ref){ ref.dom.innerText = finalContent; ref.data.content = finalContent; }
+            return true;
+        }
+        return false;
+    }
+
     function evalExpr(expr, v){
        let tokens = expr.split(/(".*?"|'.*?')/g);
        for(let i=0; i<tokens.length; i++){
@@ -808,11 +943,16 @@ function getRuntimeScript(codeStr, assetsObj){
     }
 
     function getImgId(n){ return 'rt-'+n.replace(/[^a-zA-Z0-9]/g, ''); }
-    function manageImage(act, name, x, y){
-        const id = getImgId(name); let img = document.getElementById(id);
+    function manageImage(act, n, x, y){
+        let realName = n;
+        if(!assets.images[realName] && vars[n] && assets.images[vars[n]]) realName = vars[n];
+        
+        const id = getImgId(n); let img = document.getElementById(id);
         if(act === 'Draw'){
-            if(!assets.images[name]) return;
-            if(!img){ img=document.createElement('img'); img.id=id; img.src=assets.images[name]; img.style.position='absolute'; document.body.appendChild(img); }
+            if(!assets.images[realName]) return;
+            if(!img){ img=document.createElement('img'); img.id=id; img.src=assets.images[realName]; img.style.position='absolute'; log.appendChild(img); }
+            else if(img.src !== assets.images[realName]) img.src = assets.images[realName];
+            
             img.style.left=x+'px'; img.style.top=y+'px'; img.style.width='auto'; img.style.height='auto'; img.style.display='block';
         }
         else if(act === 'Move'){ if(img){ img.style.left=x+'px'; img.style.top=y+'px'; } }
@@ -820,27 +960,27 @@ function getRuntimeScript(codeStr, assetsObj){
         else if(act === 'Hide'){ if(img) img.style.display='none'; }
         else if(act === 'Show'){ if(img) img.style.display='block'; }
     }
+
     async function runBlock(lines){
       for(let i=0; i<lines.length; i++){
         let line = lines[i].trim();
+        updateUI();
         if(!line || line.startsWith('--') || line.startsWith('#')) continue;
         
+        if(handleUICommand(line)) continue;
+
         if(line.startsWith('PrintSize(')){
             const size = parseFloat(line.match(/\\((.*)\\)/)[1]);
-            if(!isNaN(size)) currentFontSize = size;
-            continue;
+            if(!isNaN(size)) currentFontSize = size; continue;
         }
         if(line.startsWith('PrintColor(')){
             const raw = line.match(/\\((.*)\\)/)[1];
-            currentColor = raw.replace(/['"]/g, '');
-            continue;
+            currentColor = raw.replace(/['"]/g, ''); continue;
         }
         if(line.startsWith('BackgroundColor(')){
             const raw = line.match(/\\((.*)\\)/)[1];
-            document.body.style.background = raw.replace(/['"]/g, '');
-            continue;
+            log.style.background = raw.replace(/['"]/g, ''); continue;
         }
-
         if(/:Draw\\(/.test(line)){
             let n = line.split(':Draw')[0].trim(); let a = line.match(/:Draw\\((.*)\\)/)[1];
             let [x,y] = a.split(',').map(n=>parseFloat(n)); manageImage('Draw', n, x, y); continue;
@@ -852,11 +992,14 @@ function getRuntimeScript(codeStr, assetsObj){
         if(/:FullScreen$/.test(line)){ manageImage('FullScreen', line.replace(/:FullScreen$/,'').trim()); continue; }
         if(/:Hide$/.test(line)){ manageImage('Hide', line.replace(/:Hide$/,'').trim()); continue; }
         if(/:Show$/.test(line)){ manageImage('Show', line.replace(/:Show$/,'').trim()); continue; }
-        if(line === 'ClearImages'){ document.querySelectorAll('img').forEach(e=>e.remove()); continue; }
+        if(line === 'ClearImages'){ log.querySelectorAll('img').forEach(e=>e.remove()); continue; }
         if(/:Play$/.test(line)){ let f = line.replace(/:Play$/,''); if(sounds[f]){ sounds[f].currentTime=0; sounds[f].play(); } continue; }
         if(/:StopPlay$/.test(line)){ let f = line.replace(/:StopPlay$/,''); if(sounds[f]) sounds[f].pause(); continue; }
         
-        if(line === 'ClearOutput'){ log.innerText = ''; continue; }
+        if(line === 'ClearOutput'){ 
+            Array.from(log.children).forEach(c => { if(!c.classList.contains('runtime-image')) c.remove(); }); 
+            continue; 
+        }
         if(line.startsWith('Change ')){
              let parts = line.substring(7).split(" By "); let v = parts[0].trim(); let am = parseFloat(parts[1]);
              if(isNaN(am)){ if(vars[parts[1].trim()]!==undefined) am = Number(vars[parts[1].trim()]); else am = 0; }
@@ -866,15 +1009,7 @@ function getRuntimeScript(codeStr, assetsObj){
         
         if(line.startsWith('Title')){
            let m = line.match(/\\((.*)\\)/);
-           if(m){
-             let parts = m[1].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
-             let str = "";
-             parts.forEach(p=>{
-                p=p.trim();
-                if(p.startsWith('"')) str+=p.slice(1,-1); else if(vars[p]!==undefined) str+=vars[p]+" "; else str+=p+" ";
-             });
-             document.title = str.trim();
-           } continue;
+           if(m) document.title = m[1].replace(/['"]/g,''); continue;
         }
 
         if(line.startsWith('print')){
@@ -889,7 +1024,6 @@ function getRuntimeScript(codeStr, assetsObj){
              let el = document.createElement('div');
              if(str.trim()==="") el.innerHTML = "&nbsp;";
              else el.innerText = str.trim();
-             
              el.style.fontSize = currentFontSize + 'px';
              if(currentColor) el.style.color = currentColor;
              log.appendChild(el);
@@ -902,7 +1036,7 @@ function getRuntimeScript(codeStr, assetsObj){
             if(l.trim().startsWith('Forever')||l.trim().startsWith('if')) d++;
             if(l.trim()==='end') d--; if(d===0) break; sub.push(l); i++;
           }
-          while(!stopFlag){ await runBlock(sub); await new Promise(r=>setTimeout(r,10)); } continue;
+          while(!stopFlag){ await runBlock(sub); await new Promise(r=>setTimeout(r,10)); updateUI(); } continue;
         }
         if(line.startsWith('if ')){
           let branches = []; let curCond = line.slice(3, line.lastIndexOf('then')).trim(); let curBlk = [];
@@ -918,11 +1052,11 @@ function getRuntimeScript(codeStr, assetsObj){
           for(let br of branches){
              let met = false;
              if(br.c === 'true') met = true;
-             else if(br.c.includes('Pressed')){ let k = normalizeKey(br.c.replace('Pressed','')); if(keysDown[k]) met=true; }
+             else if(br.c.includes('Pressed')){ let k = br.c.replace('Pressed','').trim().toUpperCase(); if(keysDown[k]) met=true; }
              else { met = evalExpr(br.c, vars); }
              if(met){
                  await runBlock(br.b);
-                 if(br.c.includes('Pressed')){ let k=normalizeKey(br.c.replace('Pressed','')); while(keysDown[k]) await new Promise(r=>setTimeout(r,20)); }
+                 if(br.c.includes('Pressed')){ let k=br.c.replace('Pressed','').trim().toUpperCase(); while(keysDown[k]) await new Promise(r=>setTimeout(r,20)); }
                  break;
              }
           }
@@ -941,37 +1075,34 @@ function getRuntimeScript(codeStr, assetsObj){
     `;
 }
 
-function openRunner(code, assetsObj){
+function openRunner(code, assetsObj, uiObj){
   const win = window.open();
-  const scriptContent = getRuntimeScript(code, assetsObj);
-  win.document.write(`<html><head><title>MiniGame</title><style>body{background:#111;color:#eee;font-family:monospace;padding:20px;overflow:hidden;transition:background 0.3s;}#log{position:relative;z-index:10;pointer-events:none;}</style></head><body><div id="log"></div><script>${scriptContent}<\/script></body></html>`);
+  const scriptContent = getRuntimeScript(code, assetsObj, uiObj);
+  win.document.write(`<html><head><title>MiniGame</title><style>body{background:#000;color:#eee;font-family:monospace;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;}#output{width:${GAME_W}px;height:${GAME_H}px;background:#111;position:relative;overflow:hidden;border:1px solid #333;box-shadow:0 0 30px #000;}</style></head><body><div id="output"></div><script>${scriptContent}<\/script></body></html>`);
 }
 
 function exportToHtml(){
   const code = textarea.value;
-  const scriptContent = getRuntimeScript(code, assets);
+  const scriptContent = getRuntimeScript(code, assets, uiElements);
   const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <title>My MiniGame</title>
 <style>
-  body{background:#111;color:#eee;font-family:monospace;padding:20px;overflow:hidden;transition:background 0.3s;}
-  #log{position:relative;z-index:10;pointer-events:none;}
+  body{background:#000;color:#eee;font-family:monospace;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;}
+  #output{width:${GAME_W}px;height:${GAME_H}px;background:#111;position:relative;overflow:hidden;border:1px solid #333;box-shadow:0 0 30px #000;}
   img{z-index:1;}
 </style>
 </head>
 <body>
-  <div id="log"></div>
+  <div id="output"></div>
   <script>${scriptContent}<\/script>
 </body>
 </html>`;
   
   const blob = new Blob([html], {type:'text/html'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'game.html';
-  a.click();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'game.html'; a.click();
 }
 </script>
 </body>
