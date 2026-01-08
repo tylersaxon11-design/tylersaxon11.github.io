@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>MiniLang Studio — v10.0 Color Picker</title>
+<title>MiniLang Studio — v10.1 Background Update</title>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
 <style>
 /* --- THEME VARIABLES --- */
@@ -69,14 +69,14 @@ textarea#code { color: transparent; background: transparent; caret-color: var(--
 textarea#code::selection { background: rgba(128,128,128, 0.3); color: transparent; }
 pre#highlighting { z-index: 0; color: var(--text); pointer-events: none; }
 
-/* Color Picker UI */
+/* Color Picker UI - Expanded */
 #colorPicker {
   position: fixed; display: none; background: var(--panel); border: 1px solid var(--border);
-  padding: 8px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 100;
-  grid-template-columns: repeat(4, 1fr); gap: 6px; width: 140px;
+  padding: 10px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 100;
+  grid-template-columns: repeat(8, 1fr); gap: 6px; width: 260px;
 }
-.color-swatch { width: 24px; height: 24px; border-radius: 4px; cursor: pointer; border: 1px solid #444; }
-.color-swatch:hover { transform: scale(1.1); border-color: #fff; }
+.color-swatch { width: 24px; height: 24px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
+.color-swatch:hover { transform: scale(1.1); border-color: #fff; z-index:2; box-shadow:0 2px 5px rgba(0,0,0,0.5); }
 
 /* Syntax Colors */
 .c-pink { color: var(--s-pink); font-weight:bold; }
@@ -98,7 +98,7 @@ button.danger-btn{ background:transparent; color:var(--danger); border:1px solid
 button.warn-btn{ background:transparent; color:var(--warn); border:1px solid var(--warn); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:12px; }
 
 /* Output & Assets */
-#output{ margin-top:12px; background:var(--bg); min-height:250px; padding:12px; color:var(--text); border-radius:8px; font-family:"Fira Mono", monospace; white-space:pre-wrap; overflow:hidden; border:1px solid var(--border); position:relative; }
+#output{ margin-top:12px; background:var(--bg); min-height:250px; padding:12px; color:var(--text); border-radius:8px; font-family:"Fira Mono", monospace; white-space:pre-wrap; overflow:hidden; border:1px solid var(--border); position:relative; transition: background 0.3s; }
 .error-msg { color: var(--danger); font-weight:bold; border-left:3px solid var(--danger); padding-left:8px; }
 .runtime-title { font-size: 24px; font-weight: bold; color: var(--accent); margin: 10px 0; border-bottom: 1px dashed var(--border); padding-bottom: 5px; }
 
@@ -118,16 +118,43 @@ button.warn-btn{ background:transparent; color:var(--warn); border:1px solid var
 </head>
 <body>
 
-<!-- Color Picker Popup -->
+<!-- Expanded Color Picker Popup -->
 <div id="colorPicker">
-  <div class="color-swatch" style="background:#ff4f4f" onclick="insertColor('Red')"></div>
-  <div class="color-swatch" style="background:#0db24a" onclick="insertColor('Lime')"></div>
-  <div class="color-swatch" style="background:#4f8fff" onclick="insertColor('Blue')"></div>
-  <div class="color-swatch" style="background:#e0b04f" onclick="insertColor('Gold')"></div>
-  <div class="color-swatch" style="background:#ffffff" onclick="insertColor('White')"></div>
-  <div class="color-swatch" style="background:#888888" onclick="insertColor('Gray')"></div>
-  <div class="color-swatch" style="background:#d487ae" onclick="insertColor('Pink')"></div>
-  <div class="color-swatch" style="background:#6cb6c4" onclick="insertColor('Cyan')"></div>
+  <div class="color-swatch" style="background:#ffffff" title="White" onclick="insertColor('White')"></div>
+  <div class="color-swatch" style="background:#cccccc" title="Silver" onclick="insertColor('Silver')"></div>
+  <div class="color-swatch" style="background:#888888" title="Gray" onclick="insertColor('Gray')"></div>
+  <div class="color-swatch" style="background:#444444" title="DarkGray" onclick="insertColor('#444444')"></div>
+  <div class="color-swatch" style="background:#000000" title="Black" onclick="insertColor('Black')"></div>
+  <div class="color-swatch" style="background:#ffadad" title="Pastel Red" onclick="insertColor('#ffadad')"></div>
+  <div class="color-swatch" style="background:#ffd6a5" title="Pastel Orange" onclick="insertColor('#ffd6a5')"></div>
+  <div class="color-swatch" style="background:#fdffb6" title="Pastel Yellow" onclick="insertColor('#fdffb6')"></div>
+  
+  <div class="color-swatch" style="background:#ff4f4f" title="Red" onclick="insertColor('Red')"></div>
+  <div class="color-swatch" style="background:#ff7f50" title="Coral" onclick="insertColor('Coral')"></div>
+  <div class="color-swatch" style="background:#ffa500" title="Orange" onclick="insertColor('Orange')"></div>
+  <div class="color-swatch" style="background:#ffd700" title="Gold" onclick="insertColor('Gold')"></div>
+  <div class="color-swatch" style="background:#ffff00" title="Yellow" onclick="insertColor('Yellow')"></div>
+  <div class="color-swatch" style="background:#caffbf" title="Pastel Green" onclick="insertColor('#caffbf')"></div>
+  <div class="color-swatch" style="background:#9bf6ff" title="Pastel Cyan" onclick="insertColor('#9bf6ff')"></div>
+  <div class="color-swatch" style="background:#a0c4ff" title="Pastel Blue" onclick="insertColor('#a0c4ff')"></div>
+
+  <div class="color-swatch" style="background:#a52a2a" title="Brown" onclick="insertColor('Brown')"></div>
+  <div class="color-swatch" style="background:#800000" title="Maroon" onclick="insertColor('Maroon')"></div>
+  <div class="color-swatch" style="background:#0db24a" title="Lime" onclick="insertColor('Lime')"></div>
+  <div class="color-swatch" style="background:#008000" title="Green" onclick="insertColor('Green')"></div>
+  <div class="color-swatch" style="background:#00ffff" title="Cyan" onclick="insertColor('Cyan')"></div>
+  <div class="color-swatch" style="background:#008080" title="Teal" onclick="insertColor('Teal')"></div>
+  <div class="color-swatch" style="background:#4f8fff" title="Blue" onclick="insertColor('Blue')"></div>
+  <div class="color-swatch" style="background:#000080" title="Navy" onclick="insertColor('Navy')"></div>
+
+  <div class="color-swatch" style="background:#bdb2ff" title="Pastel Purple" onclick="insertColor('#bdb2ff')"></div>
+  <div class="color-swatch" style="background:#ffc6ff" title="Pastel Pink" onclick="insertColor('#ffc6ff')"></div>
+  <div class="color-swatch" style="background:#d487ae" title="Pink" onclick="insertColor('Pink')"></div>
+  <div class="color-swatch" style="background:#ff00ff" title="Magenta" onclick="insertColor('Magenta')"></div>
+  <div class="color-swatch" style="background:#800080" title="Purple" onclick="insertColor('Purple')"></div>
+  <div class="color-swatch" style="background:#4b0082" title="Indigo" onclick="insertColor('Indigo')"></div>
+  <div class="color-swatch" style="background:#f5f5dc" title="Beige" onclick="insertColor('Beige')"></div>
+  <div class="color-swatch" style="background:#2a2a2a" title="Charcoal" onclick="insertColor('#2a2a2a')"></div>
 </div>
 
 <div class="header">
@@ -143,7 +170,7 @@ button.warn-btn{ background:transparent; color:var(--warn); border:1px solid var
       <div class="menu-row"><label><input type="checkbox" id="runNewTabToggle"/> Run In New Tab</label></div>
     </div>
   </div>
-  <div style="font-weight:700; color:var(--accent)">MiniLang Studio v10.0</div>
+  <div style="font-weight:700; color:var(--accent)">MiniLang Studio v10.1</div>
   <div style="flex:1"></div>
   <select id="themeSelect" onchange="changeTheme(this.value)">
     <option value="system">System</option><option value="dark">Dark</option><option value="light">Light</option>
@@ -174,22 +201,26 @@ button.warn-btn{ background:transparent; color:var(--warn); border:1px solid var
     </div>
     <div class="editor-container">
         <pre id="highlighting" aria-hidden="true"></pre>
-        <textarea id="code" spellcheck="false" oninput="updateHighlighting()" onscroll="syncScroll()">-- Text Adventure Example
+        <textarea id="code" spellcheck="false" oninput="updateHighlighting()" onscroll="syncScroll()">-- Colorful Text Adventure
+BackgroundColor("#222")
 Title("The Dark Cave")
-print("You find a mysterious cave, what do you do?")
+print("You find a mysterious cave...")
 print("")
+
 PrintColor("Gold")
-print("Choices: Enter, Run")
+print("Options: Enter, Run")
 PrintColor("White")
 
 Choice = input
 
 if Choice = "Enter" then
+    BackgroundColor("Black")
     PrintColor("Red")
-    print("You enter the dark cave...")
+    print("You enter the pitch black cave...")
 else
-    PrintColor("Lime")
-    print("You ran away safely.")
+    BackgroundColor("SkyBlue")
+    PrintColor("Black")
+    print("You run out into the sunlight.")
 end
 </textarea>
     </div>
@@ -224,10 +255,11 @@ end
       <h3>Text & Display</h3>
       <table class="doc-table">
         <tr><td>Title("Text")</td><td>Sets the Browser Tab Name.</td></tr>
-        <tr><td>print("Text")</td><td>Prints normal text.</td></tr>
-        <tr><td>PrintColor("Color")</td><td>Sets text color (Red, Blue, #ff0000).</td></tr>
+        <tr><td>print("Text")</td><td>Prints normal text to the screen.</td></tr>
+        <tr><td>PrintColor("Color")</td><td>Sets text color (Red, #ff0000).</td></tr>
         <tr><td>PrintSize(Number)</td><td>Sets font size.</td></tr>
-        <tr><td>ClearOutput</td><td>Removes all text.</td></tr>
+        <tr><td>BackgroundColor("Col")</td><td>Sets the screen background color.</td></tr>
+        <tr><td>ClearOutput</td><td>Removes all text (keeps images).</td></tr>
       </table>
       <div class="sep"></div>
       <h3>Variables & Math</h3>
@@ -264,6 +296,7 @@ end
       <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode(`print(&quot;Hello&quot;)`)">Print</button>
       <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode(`PrintColor(&quot;&quot;)`)">Print Color</button>
       <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode(`PrintSize(20)`)">Print Size</button>
+      <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode(`BackgroundColor(&quot;&quot;)`)">BG Color</button>
       <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode('wait(1)')">Wait</button>
       <button class="insert-btn" onmousedown="event.preventDefault()" onclick="insertCode('ClearOutput')">ClearOutput</button>
       
@@ -286,7 +319,7 @@ end
 
 <script>
 /* --- 1. Global State --- */
-const CURRENT_VERSION = 10.0;
+const CURRENT_VERSION = 10.1;
 const assets = { sounds: {}, images: {} }; 
 const soundObjects = {}; 
 let stopFlag = false;
@@ -295,16 +328,15 @@ let stopFlag = false;
 const colorPicker = document.getElementById('colorPicker');
 const textarea = document.getElementById('code');
 
-// Show Picker on Click inside PrintColor("")
+// Show Picker on Click inside quotes of specific commands
 textarea.addEventListener('click', (e) => {
   const pos = textarea.selectionStart;
   const val = textarea.value;
   const before = val.substring(0, pos);
   
-  // Simple regex to check if we are inside PrintColor("...")
-  // We check if the last occurrence of PrintColor(" is after the last closing paren/quote that is not part of this command
-  // Simplest: Check immediate proximity
-  if(before.trim().endsWith('PrintColor("') || before.trim().endsWith("PrintColor('")) {
+  // Check if cursor is inside quotes of PrintColor or BackgroundColor
+  if(before.trim().endsWith('PrintColor("') || before.trim().endsWith("PrintColor('") ||
+     before.trim().endsWith('BackgroundColor("') || before.trim().endsWith("BackgroundColor('")) {
       colorPicker.style.display = 'grid';
       colorPicker.style.left = e.clientX + 'px';
       colorPicker.style.top = e.clientY + 'px';
@@ -313,7 +345,6 @@ textarea.addEventListener('click', (e) => {
   }
 });
 
-// Hide Picker when clicking elsewhere
 document.addEventListener('click', (e) => {
   if(e.target !== textarea && !colorPicker.contains(e.target) && !e.target.classList.contains('insert-btn')) {
       colorPicker.style.display = 'none';
@@ -420,7 +451,7 @@ function updateHighlighting() {
   let t = textarea.value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   t = t.replace(/\(([^)\n]*)\)/g, '(<span class="c-purple">$1</span>)');
   t = t.replace(/(:Play|:StopPlay|:Draw|:Move|:FullScreen|:Hide|:Show)\b/g, '<span class="c-pink">$1</span>');
-  t = t.replace(/\b(print|Title|PrintSize|PrintColor)\b/g, '<span class="c-yellow">$1</span>');
+  t = t.replace(/\b(print|Title|PrintSize|PrintColor|BackgroundColor)\b/g, '<span class="c-yellow">$1</span>');
   t = t.replace(/\b(input)\b/g, '<span class="c-cyan">$1</span>');
   t = t.replace(/\b(ClearOutput|ClearImages)\b/g, '<span class="c-green">$1</span>');
   t = t.replace(/\b(Forever|if|then|end|Change|By|wait|Pressed|elseif|else)\b/g, '<span class="c-blue">$1</span>');
@@ -520,7 +551,7 @@ function normalizeKey(k){
   return k; 
 }
 
-function clearOutput(){ document.getElementById('output').innerHTML = ''; }
+function clearOutput(){ document.getElementById('output').innerHTML = ''; document.getElementById('output').style.background = ''; }
 function stopExecution(){ 
   stopFlag = true;
   document.getElementById('statusIndicator').classList.remove('running');
@@ -580,7 +611,7 @@ async function run(){
   const vars = {};
   const outputEl = document.getElementById('output');
   let currentFontSize = 16;
-  let currentColor = ''; // Default
+  let currentColor = ''; 
 
   function doPrint(line){
     const m = line.match(/\((.*)\)/); if(!m) return;
@@ -597,12 +628,8 @@ async function run(){
     });
     
     const el = document.createElement('div');
-    // Logic for empty print
-    if(finalStr.trim() === ""){
-        el.innerHTML = "&nbsp;";
-    } else {
-        el.innerText = finalStr.trim();
-    }
+    if(finalStr.trim() === "") el.innerHTML = "&nbsp;";
+    else el.innerText = finalStr.trim();
     
     el.style.fontSize = currentFontSize + 'px';
     if(currentColor) el.style.color = currentColor;
@@ -638,6 +665,11 @@ async function run(){
         if(line.startsWith('PrintColor(')){
             const raw = line.match(/\((.*)\)/)[1];
             currentColor = raw.replace(/['"]/g, '');
+            continue;
+        }
+        if(line.startsWith('BackgroundColor(')){
+            const raw = line.match(/\((.*)\)/)[1];
+            outputEl.style.background = raw.replace(/['"]/g, '');
             continue;
         }
         
@@ -801,6 +833,11 @@ function openRunner(code, assetsObj){
             currentColor = raw.replace(/['"]/g, '');
             continue;
         }
+        if(line.startsWith('BackgroundColor(')){
+            const raw = line.match(/\\((.*)\\)/)[1];
+            document.body.style.background = raw.replace(/['"]/g, '');
+            continue;
+        }
 
         if(/:Draw\\(/.test(line)){
             let n = line.split(':Draw')[0].trim(); let a = line.match(/:Draw\\((.*)\\)/)[1];
@@ -900,7 +937,7 @@ function openRunner(code, assetsObj){
     }
     runBlock(code.split('\\n'));
   `;
-  win.document.write(`<html><head><title>MiniGame</title><style>body{background:#111;color:#eee;font-family:monospace;padding:20px;overflow:hidden;}#log{position:relative;z-index:10;pointer-events:none;}</style></head><body><div id="log"></div><script>${script}<\/script></body></html>`);
+  win.document.write(`<html><head><title>MiniGame</title><style>body{background:#111;color:#eee;font-family:monospace;padding:20px;overflow:hidden;transition:background 0.3s;}#log{position:relative;z-index:10;pointer-events:none;}</style></head><body><div id="log"></div><script>${script}<\/script></body></html>`);
 }
 </script>
 </body>
